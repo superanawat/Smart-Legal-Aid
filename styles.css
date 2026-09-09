@@ -12,39 +12,39 @@ body {
 }
 
 .app-header {
-  background: #e87500;
-  border-bottom: 1px solid #bd5e00;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
   color: #ffffff;
 }
 
-.app-header p { color: #fff3e6; }
+.app-header p { color: #94a3b8; }
 
 .app-logo {
-  background: #ffffff;
-  color: #c65f00;
-  box-shadow: 0 2px 6px rgba(105, 47, 0, 0.22);
+  background: #f59e0b;
+  color: #0f172a;
+  box-shadow: none;
 }
 
 .app-badge {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.48);
-  color: #ffffff;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
 }
 
 .app-report-button {
-  background: #ffffff;
-  color: #b95500;
-}
-
-.app-report-button:hover { background: #fff3e6; }
-
-.app-reset-button {
-  background: rgba(120, 55, 0, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.44);
+  background: #4f46e5;
   color: #ffffff;
 }
 
-.app-reset-button:hover { background: rgba(120, 55, 0, 0.42); }
+.app-report-button:hover { background: #6366f1; }
+
+.app-reset-button {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+}
+
+.app-reset-button:hover { background: #334155; }
 
 .custom-scrollbar::-webkit-scrollbar { width: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -84,4 +84,3 @@ body {
   #compare-modal .sticky { display: none !important; }
   #modal-compare-content { break-inside: avoid; }
 }
-
