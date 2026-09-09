@@ -229,7 +229,7 @@
             <button onclick="closeCompareModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <h3 id="modal-title" class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-chart-pie text-indigo-600"></i> รายงานผลการเปรียบเทียบความสมดุลภาระงาน สคช.
             </h3>
             <div id="modal-compare-content" class="grid grid-cols-2 gap-4 text-xs">
@@ -449,6 +449,7 @@
         async function runComparisonModal() {
             if (selectedOffices.length < 2) return;
             const [o1, o2] = selectedOffices.map(o => o.properties);
+            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-chart-pie text-indigo-600"></i> รายงานผลการเปรียบเทียบความสมดุลภาระงาน สคช.';
 
             const content = `
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
@@ -568,8 +569,60 @@
             map.setView([13.736717, 100.523186], 6);
         }
 
-        function exportPDFReport() {
-            window.print();
+        function buildNationalDashboardSnapshot() {
+            const regions = {};
+            const issues = {};
+            let scoreTotal = 0;
+            let hotspots = 0;
+            allFeatures.forEach(feature => {
+                const props = feature.properties || {};
+                const score = calculateWeightedScore(props);
+                const region = props.region || 'ไม่ระบุภูมิภาค';
+                if (!regions[region]) regions[region] = { offices: 0, score_total: 0, hotspots: 0 };
+                regions[region].offices += 1;
+                regions[region].score_total += score;
+                if (score > 75) { regions[region].hotspots += 1; hotspots += 1; }
+                scoreTotal += score;
+                (props.top_issues || []).forEach(issue => { issues[issue] = (issues[issue] || 0) + 1; });
+            });
+            const region_summary = Object.entries(regions).map(([region, values]) => ({
+                region,
+                offices: values.offices,
+                average_score: Math.round((values.score_total / values.offices) * 10) / 10,
+                hotspots: values.hotspots
+            })).sort((a, b) => b.average_score - a.average_score);
+            return {
+                total_offices: allFeatures.length,
+                average_legal_demand_score: Math.round((scoreTotal / Math.max(allFeatures.length, 1)) * 10) / 10,
+                hotspots,
+                region_summary,
+                top_issues: Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([issue, count]) => ({ issue, count })),
+                model_weights: getNormalizedWeights()
+            };
+        }
+
+        async function exportPDFReport() {
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-compare-content');
+            title.innerHTML = '<i class="fa-solid fa-file-lines text-indigo-600"></i> รายงานสรุปผู้บริหารระดับประเทศ';
+            content.innerHTML = '<div class="col-span-2 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm"><i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> กำลังให้ AI สรุปภาพรวมระดับประเทศ...</div>';
+            document.getElementById('compare-modal').classList.remove('hidden');
+            try {
+                const dashboard = buildNationalDashboardSnapshot();
+                const response = await fetch(`${AI_API_BASE_URL}/executive-summary`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ dashboard })
+                });
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'Executive summary failed');
+                const result = payload.result || {};
+                const list = (items) => (items || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.average_legal_demand_score}/100</b><br><span class="text-xs">คะแนนเฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspots</span></div></div><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
+            } catch (error) {
+                console.error('Executive report failed:', error);
+                content.innerHTML = '<div class="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">ไม่สามารถเชื่อมต่อ AI เพื่อสร้างรายงานได้ กรุณาตรวจ Flask, ngrok และ URL ใน index.html</div>';
+            }
         }
 
         // Run Map on Load
