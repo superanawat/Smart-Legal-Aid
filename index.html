@@ -200,8 +200,8 @@
     </div>
 
     <!-- Comparison Modal Dialog -->
-    <div id="compare-modal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 relative">
+    <div id="compare-modal" class="fixed inset-0 z-[1000] hidden items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div class="relative my-4 max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
             <button onclick="closeCompareModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -211,7 +211,7 @@
             <div id="modal-compare-content" class="grid grid-cols-2 gap-4 text-xs">
                 <!-- Content injected dynamically -->
             </div>
-            <div class="mt-6 flex justify-end gap-2">
+            <div class="sticky bottom-0 -mx-6 -mb-6 mt-6 flex justify-end gap-2 border-t border-slate-200 bg-white px-6 py-4">
                 <button onclick="closeCompareModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium">ปิด</button>
                 <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium">พิมพ์รายงาน</button>
             </div>
