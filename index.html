@@ -19,7 +19,7 @@
 
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
-        #map { height: calc(100vh - 73px); width: 100%; z-index: 1; }
+        #map { height: 100%; min-height: 55vh; width: 100%; z-index: 1; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -50,23 +50,23 @@
         }
     </style>
 </head>
-<body class="overflow-hidden">
+<body class="min-h-screen overflow-x-hidden">
 
     <!-- Header Navigation Bar -->
-    <header class="bg-slate-900 text-white px-6 py-3 flex justify-between items-center shadow-lg relative z-10 border-b border-slate-800">
-        <div class="flex items-center space-x-3">
+    <header class="relative z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-900 px-4 py-3 text-white shadow-lg sm:px-6">
+        <div class="flex min-w-0 items-center space-x-3">
             <div class="bg-amber-500 text-slate-900 p-2 rounded-lg font-bold">
                 <i class="fa-solid fa-scale-balanced text-xl"></i>
             </div>
             <div>
-                <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
+                <h1 class="flex flex-wrap items-center gap-2 text-base font-bold leading-tight sm:text-lg">
                     Smart Legal Aid Spatial & Insight Analytics Platform
                     <span class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/30 font-normal">DIGI Data Camp Season 5</span>
                 </h1>
                 <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการทรัพยากรอัจฉริยะ (สคช. ทั่วประเทศ)</p>
             </div>
         </div>
-        <div class="flex items-center space-x-3">
+        <div class="flex shrink-0 items-center space-x-2 sm:space-x-3">
             <button onclick="exportPDFReport()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
                 <i class="fa-solid fa-file-pdf"></i> ออกรายงาน PDF
             </button>
@@ -77,10 +77,10 @@
     </header>
 
     <!-- Main Container Layout -->
-    <div class="flex w-full h-[calc(100vh-73px)] relative">
+    <div class="relative flex min-h-[calc(100vh-73px)] w-full flex-col md:h-[calc(100vh-73px)] md:flex-row">
 
         <!-- Sidebar Panel Controls (Left) -->
-        <aside class="w-96 bg-white border-r border-slate-200 flex flex-col z-10 shadow-xl custom-scrollbar overflow-y-auto">
+        <aside class="z-10 flex w-full flex-col border-r border-slate-200 bg-white shadow-xl md:w-96 md:overflow-y-auto custom-scrollbar">
             
             <!-- Statistics Overview Cards -->
             <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 gap-3">
@@ -92,6 +92,14 @@
                     <p class="text-xs text-slate-500 font-medium">จุดความต้องการสูง (Hotspots)</p>
                     <p id="stat-hotspots" class="text-2xl font-bold text-rose-600">18 <span class="text-xs text-slate-400 font-normal">พื้นที่</span></p>
                 </div>
+            </div>
+
+            <!-- Nearest Office -->
+            <div class="border-b border-slate-200 p-4">
+                <button onclick="findNearestOffice()" class="w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
+                    <i class="fa-solid fa-location-crosshairs"></i> ค้นหา สคช. ใกล้ฉัน
+                </button>
+                <div id="nearby-result" class="mt-2 hidden rounded-lg border border-indigo-100 bg-indigo-50 p-2.5 text-xs text-slate-700"></div>
             </div>
 
             <!-- Filter & Search Controls -->
@@ -165,12 +173,6 @@
                         <input type="range" id="weight-vulnerable" min="0" max="50" value="20" oninput="updateWeights()" class="w-full accent-indigo-600">
                 </div>
             </div>
-            <div class="pt-1">
-                <button onclick="findNearestOffice()" class="w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
-                    <i class="fa-solid fa-location-crosshairs"></i> ค้นหา สคช. ใกล้ฉัน
-                </button>
-                <div id="nearby-result" class="mt-2 hidden rounded-lg border border-indigo-100 bg-indigo-50 p-2.5 text-xs text-slate-700"></div>
-            </div>
         </div>
 
             <!-- AI Legal Knowledge Assistant Box -->
@@ -206,7 +208,7 @@
         </aside>
 
         <!-- Leaflet Map Canvas (Right) -->
-        <main class="flex-1 relative">
+        <main class="relative min-h-[55vh] flex-1 md:min-h-0">
             <div id="map"></div>
 
             <!-- Map Layer Toggle Floating Controls -->
@@ -285,6 +287,7 @@
             }
 
             renderData(allFeatures);
+            window.addEventListener('resize', () => setTimeout(() => map.invalidateSize(), 100));
         }
 
         function getNormalizedWeights() {
