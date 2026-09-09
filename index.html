@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Legal Aid Spatial & Insight Analytics Platform | DIGI Data Camp Season 5</title>
+    <title>Smart Legal Aid Spatial & Insight Analytics Platform | Prototype</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leaflet CSS & JS -->
@@ -29,7 +29,7 @@
             <div>
                 <h1 class="flex flex-wrap items-center gap-2 text-base font-bold leading-tight sm:text-lg">
                     Smart Legal Aid Spatial & Insight Analytics Platform
-                    <span class="app-badge text-xs px-2 py-0.5 rounded font-normal">[Prototype]</span>
+                    <span class="app-badge text-xs px-2 py-0.5 rounded font-normal">[ Prototype ]</span>
                 </h1>
                 <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการทรัพยากรอัจฉริยะ (สคช. ทั่วประเทศ)</p>
             </div>
@@ -102,6 +102,36 @@
                 </div>
             </div>
 
+            <!-- AI Legal Knowledge Assistant Box -->
+            <div class="p-4 border-b border-slate-200 space-y-3">
+                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-amber-500"></i> AI Legal Assistant
+                </h2>
+                <div class="relative">
+                    <input type="text" id="ai-query" placeholder="ถาม AI เช่น 'ประเด็นหนี้สินภาค 3'..." 
+                           class="w-full pl-3 pr-8 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    <button onclick="askAIAssistant()" class="absolute right-2 top-1.5 text-amber-600 hover:text-amber-700 text-xs">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="ai-response-box" class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-slate-700 hidden">
+                    <p id="ai-response-text" class="leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Comparison Selection Sidepanel -->
+            <div class="p-4 border-b border-slate-200 space-y-3">
+                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-code-compare text-emerald-600"></i> เปรียบเทียบความสมดุล (Comparison)
+                </h2>
+                <div id="compare-container" class="space-y-2 text-xs text-slate-500 italic">
+                    กรุณากดปุ่ม <b>"+ เปรียบเทียบ"</b> ใน Popup บนแผนที่ เพื่อเลือก สคช. 2 แห่งมาเปรียบเทียบภาระงาน
+                </div>
+                <button id="btn-run-compare" onclick="runComparisonModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2 rounded-lg font-medium hidden shadow transition">
+                    <i class="fa-solid fa-chart-simple"></i> ประมวลผลเปรียบเทียบ
+                </button>
+            </div>
+
             <!-- Weighted Model Sliders (Legal Demand Model) -->
             <div class="p-4 border-b border-slate-200 space-y-3 bg-slate-50/50">
                 <div class="flex justify-between items-center">
@@ -142,36 +172,6 @@
                 </div>
             </div>
         </div>
-
-            <!-- AI Legal Knowledge Assistant Box -->
-            <div class="p-4 border-b border-slate-200 space-y-3">
-                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-brain text-amber-500"></i> AI Legal Assistant
-                </h2>
-                <div class="relative">
-                    <input type="text" id="ai-query" placeholder="ถาม AI เช่น 'ประเด็นหนี้สินภาค 3'..." 
-                           class="w-full pl-3 pr-8 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                    <button onclick="askAIAssistant()" class="absolute right-2 top-1.5 text-amber-600 hover:text-amber-700 text-xs">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </div>
-                <div id="ai-response-box" class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-slate-700 hidden">
-                    <p id="ai-response-text" class="leading-relaxed"></p>
-                </div>
-            </div>
-
-            <!-- Comparison Selection Sidepanel -->
-            <div class="p-4 space-y-3 flex-1">
-                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-code-compare text-emerald-600"></i> เปรียบเทียบความสมดุล (Comparison)
-                </h2>
-                <div id="compare-container" class="space-y-2 text-xs text-slate-500 italic">
-                    กรุณากดปุ่ม <b>"+ เปรียบเทียบ"</b> ใน Popup บนแผนที่ เพื่อเลือก สคช. 2 แห่งมาเปรียบเทียบภาระงาน
-                </div>
-                <button id="btn-run-compare" onclick="runComparisonModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2 rounded-lg font-medium hidden shadow transition">
-                    <i class="fa-solid fa-chart-simple"></i> ประมวลผลเปรียบเทียบ
-                </button>
-            </div>
 
         </aside>
 
