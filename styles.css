@@ -1,1 +1,87 @@
+/* Smart Legal Aid: shared presentation styles */
+body {
+  font-family: "Prompt", sans-serif;
+  background-color: #f8fafc;
+}
+
+#map {
+  height: 100%;
+  min-height: 55vh;
+  width: 100%;
+  z-index: 1;
+}
+
+.app-header {
+  background: #e87500;
+  border-bottom: 1px solid #bd5e00;
+  color: #ffffff;
+}
+
+.app-header p { color: #fff3e6; }
+
+.app-logo {
+  background: #ffffff;
+  color: #c65f00;
+  box-shadow: 0 2px 6px rgba(105, 47, 0, 0.22);
+}
+
+.app-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  color: #ffffff;
+}
+
+.app-report-button {
+  background: #ffffff;
+  color: #b95500;
+}
+
+.app-report-button:hover { background: #fff3e6; }
+
+.app-reset-button {
+  background: rgba(120, 55, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  color: #ffffff;
+}
+
+.app-reset-button:hover { background: rgba(120, 55, 0, 0.42); }
+
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.leaflet-popup-content-wrapper { border-radius: 12px; padding: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+
+@media (max-width: 640px) {
+  .app-header { align-items: flex-start; }
+  .app-header > div:first-child { width: 100%; }
+  .app-header h1 { font-size: 0.95rem; }
+  .app-header p { display: none; }
+  .app-header > div:last-child { width: 100%; justify-content: flex-end; }
+  #map { min-height: 60vh; }
+}
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { overflow: visible !important; background: #fff !important; }
+  body > header, body > .flex { display: none !important; }
+  #compare-modal {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+  #compare-modal > div {
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  #compare-modal button,
+  #compare-modal .sticky { display: none !important; }
+  #modal-compare-content { break-inside: avoid; }
+}
 
