@@ -39,7 +39,7 @@
                     Smart Legal Aid Spatial & Insight Analytics Platform
                     <span class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/30 font-normal">DIGI Data Camp Season 5</span>
                 </h1>
-                <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการอัจฉริยะ (สคช. ทั่วประเทศ)</p>
+                <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการทรัพยากรอัจฉริยะ (สคช. ทั่วประเทศ)</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -289,6 +289,7 @@
                         <b>Demand Score:</b> <span class="font-bold text-rose-600">${score}/100</span><br>
                         <b>ประเด็นหลัก:</b> ${(props.top_issues || []).join(', ')}<br>
                         <b>โทร:</b> ${props.phone || '-'}</p>
+                        <button onclick="analyzeOffice('${props.id}')" class="w-full rounded bg-indigo-600 px-2 py-1.5 font-medium text-white hover:bg-indigo-500"><i class="fa-solid fa-brain"></i> วิเคราะห์ สคช. นี้ด้วย AI</button>
                         <button onclick="addToCompare('${props.id}')" class="w-full rounded bg-emerald-600 px-2 py-1.5 font-medium text-white hover:bg-emerald-500">+ เลือกเปรียบเทียบ</button>
                     </div>
                 `);
@@ -432,10 +433,7 @@
         }
 
         // 7. AI Legal Assistant Search
-        async function askAIAssistant() {
-            const query = document.getElementById('ai-query').value.trim();
-            if (!query) return;
-
+        async function requestAIAnalysis(query, office = {}) {
             const box = document.getElementById('ai-response-box');
             const text = document.getElementById('ai-response-text');
 
@@ -443,7 +441,6 @@
             text.innerText = "🤖 กำลังวิเคราะห์ด้วย AI ภายในองค์กร...";
 
             try {
-                const office = selectedOffices[0]?.properties || {};
                 const response = await fetch(`${AI_API_BASE_URL}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -459,6 +456,23 @@
                 console.error('Smart Legal Aid AI request failed:', error);
                 text.innerText = 'ไม่สามารถเชื่อมต่อ AI ภายในองค์กรได้ กรุณาตรวจว่า Flask และ ngrok กำลังทำงานอยู่';
             }
+        }
+
+        async function askAIAssistant() {
+            const query = document.getElementById('ai-query').value.trim();
+            if (!query) return;
+            await requestAIAnalysis(query, selectedOffices[0]?.properties || {});
+        }
+
+        async function analyzeOffice(id) {
+            const feature = allFeatures.find(item => item.properties?.id === id);
+            if (!feature) return;
+
+            const office = feature.properties;
+            const query = `วิเคราะห์ข้อมูล สคช. ${office.title} เพื่อสนับสนุนการจัดสรรทรัพยากรเชิงพื้นที่ โดยสรุประดับความสำคัญ ประเด็นความต้องการหลัก ความเสี่ยงที่ควรเฝ้าระวัง และข้อเสนอแนะเชิงปฏิบัติสำหรับสำนักงานนี้`;
+            document.getElementById('ai-query').value = `วิเคราะห์ สคช.: ${office.title}`;
+            await requestAIAnalysis(query, office);
+            document.getElementById('ai-response-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // 8. Utility Reset & PDF Export
