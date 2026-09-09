@@ -3272,3 +3272,22 @@ const SKC_OFFICES_DATA = {
     }
   ]
 };
+
+// Prototype-only component scores for the interactive Weighted Sum model.
+// They are derived from the existing legal_demand_score so the default weights
+// reproduce the current score approximately. Replace these values with real
+// webboard, service, economic and vulnerability indicators before production.
+(() => {
+  const clamp = (value) => Math.round(Math.max(0, Math.min(100, value)) * 10) / 10;
+  SKC_OFFICES_DATA.features.forEach((feature, index) => {
+    const props = feature.properties;
+    const base = Number(props.legal_demand_score) || 50;
+    const webboard = clamp(base + ((index % 7) - 3) * 3);
+    const service = clamp(base + (((index * 3) % 9) - 4) * 2);
+    const economic = clamp(base + (((index * 5) % 11) - 5) * 2);
+    // Balance the fourth value so 30/30/20/20 remains close to the original score.
+    const vulnerable = clamp((base - (0.30 * webboard + 0.30 * service + 0.20 * economic)) / 0.20);
+    props.score_components = { webboard, service, economic, vulnerable };
+    props.score_component_source = "derived_prototype";
+  });
+})();
