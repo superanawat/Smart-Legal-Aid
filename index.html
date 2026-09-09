@@ -39,7 +39,7 @@
                     Smart Legal Aid Spatial & Insight Analytics Platform
                     <span class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/30 font-normal">DIGI Data Camp Season 5</span>
                 </h1>
-                <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการทรัพยากรอัจฉริยะ (สคช. ทั่วประเทศ)</p>
+                <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการอัจฉริยะ (สคช. ทั่วประเทศ)</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -229,6 +229,8 @@
         let selectedOffices = [];
         let currentMode = 'markers';
         let allFeatures = [];
+        // เปลี่ยนค่านี้เมื่อ ngrok สร้าง URL ใหม่
+        const AI_API_BASE_URL = 'https://tender-roast-tamale.ngrok-free.dev';
 
         // 1. Initialize Map
         function initMap() {
@@ -280,8 +282,17 @@
                     opacity: 1,
                     fillOpacity: 0.85
                 });
+                marker.bindPopup(`
+                    <div class="space-y-2 text-xs">
+                        <h3 class="font-bold text-slate-800 text-sm">${props.title}</h3>
+                        <p><b>พื้นที่:</b> ${props.district || '-'}, ${props.province || '-'}<br>
+                        <b>Demand Score:</b> <span class="font-bold text-rose-600">${score}/100</span><br>
+                        <b>ประเด็นหลัก:</b> ${(props.top_issues || []).join(', ')}<br>
+                        <b>โทร:</b> ${props.phone || '-'}</p>
+                        <button onclick="addToCompare('${props.id}')" class="w-full rounded bg-emerald-600 px-2 py-1.5 font-medium text-white hover:bg-emerald-500">+ เลือกเปรียบเทียบ</button>
+                    </div>
+                `);
                 markersLayer.addLayer(marker);
-                // ... (ส่วน Popup คงเดิม) ...
             
                 // 3. ปรับการเก็บจุด Heatmap ให้ใช้ [lat, lng, score]
                 heatPoints.push([lat, lng, score / 100]);
@@ -421,7 +432,7 @@
         }
 
         // 7. AI Legal Assistant Search
-        function askAIAssistant() {
+        async function askAIAssistant() {
             const query = document.getElementById('ai-query').value.trim();
             if (!query) return;
 
@@ -429,11 +440,25 @@
             const text = document.getElementById('ai-response-text');
 
             box.classList.remove('hidden');
-            text.innerText = "🤖 AI กำลังประมวลผลวิเคราะห์คำถามและสกัดองค์ความรู้จากฐานข้อมูลกฎหมาย...";
+            text.innerText = "🤖 กำลังวิเคราะห์ด้วย AI ภายในองค์กร...";
 
-            setTimeout(() => {
-                text.innerText = `💡 [วิเคราะห์ AI]: จากคำถาม '${query}' พบว่าประเด็นความเดือดร้อนหลักในพื้นที่เชื่อมโยงกับปัญหาหนี้สินนอกระบบและสัญญาไม่เป็นธรรม ข้อแนะนำเชิงนโยบาย: ควรจัดตั้งคลินิกกฎหมายเคลื่อนที่ สคช. ร่วมกับไกล่เกลี่ยข้อตกลงในระดับอำเภอ`;
-            }, 1000);
+            try {
+                const office = selectedOffices[0]?.properties || {};
+                const response = await fetch(`${AI_API_BASE_URL}/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, office })
+                });
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'AI service error');
+
+                const result = payload.result;
+                const actions = (result.recommended_actions || []).map(item => `• ${item}`).join('\n');
+                text.innerText = `${result.summary}\n\nประเภท: ${result.category} | ความเร่งด่วน: ${result.urgency}\n${actions}\n\n${result.disclaimer}`;
+            } catch (error) {
+                console.error('Smart Legal Aid AI request failed:', error);
+                text.innerText = 'ไม่สามารถเชื่อมต่อ AI ภายในองค์กรได้ กรุณาตรวจว่า Flask และ ngrok กำลังทำงานอยู่';
+            }
         }
 
         // 8. Utility Reset & PDF Export
