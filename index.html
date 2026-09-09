@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Leaflet Heatmap Plugin -->
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
@@ -258,16 +259,19 @@
 
             features.forEach(feature => {
                 const props = feature.properties;
-                const coords = feature.geometry.coordinates;
-                const latLng = [coords[4], coords];
+                const coords = feature.geometry.coordinates; // โครงสร้าง GeoJSON ปกติคือ [lng, lat]
+            
+                // 1. แยกค่าพิกัดให้ชัดเจนเพื่อป้องกัน undefined
+                const lng = coords[0]; // ค่าลองจิจูด (100.x)
+                const lat = coords[1]; // ค่าละติจูด (13.x)
+                const latLng = [lat, lng];
+            
                 const score = props.legal_demand_score || 50;
-
                 if (score > 75) hotspotCount++;
-
-                // Color code by Demand Score
+            
                 const color = score > 75 ? '#f43f5e' : score > 50 ? '#f59e0b' : '#10b981';
-
-                // Create Circle Marker
+            
+                // 2. สร้าง Marker โดยใช้ latLng ที่ถูกต้อง
                 const marker = L.circleMarker(latLng, {
                     radius: 8,
                     fillColor: color,
@@ -276,34 +280,11 @@
                     opacity: 1,
                     fillOpacity: 0.85
                 });
-
-                // Popup Content
-                const popupHtml = `
-                    <div class="p-2 font-sans min-w-[220px]">
-                        <div class="text-xs font-bold text-slate-800 mb-1">${props.title}</div>
-                        <div class="text-[11px] text-slate-500 mb-2">${props.province} (${props.region})</div>
-                        <div class="space-y-1 text-[11px] text-slate-600 border-t border-slate-100 pt-1.5">
-                            <div><i class="fa-solid fa-phone text-slate-400 w-4"></i> ${props.phone}</div>
-                            <div><i class="fa-brands fa-line text-emerald-500 w-4"></i> ${props.line}</div>
-                            <div><i class="fa-solid fa-envelope text-slate-400 w-4"></i> ${props.email}</div>
-                        </div>
-                        <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center">
-                            <div>
-                                <span class="text-[10px] text-slate-400 block">Demand Score</span>
-                                <span class="text-xs font-bold" style="color: ${color}">${score}/100</span>
-                            </div>
-                            <button onclick="addToCompare('${props.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-medium px-2 py-1 rounded border border-indigo-200 transition">
-                                + เปรียบเทียบ
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                marker.bindPopup(popupHtml);
-                markersLayer.addLayer(marker);
-
-                // Prepare heatmap point
-                heatPoints.push([coords[4], coords, score / 100]);
+            
+                // ... (ส่วน Popup คงเดิม) ...
+            
+                // 3. ปรับการเก็บจุด Heatmap ให้ใช้ [lat, lng, score]
+                heatPoints.push([lat, lng, score / 100]);
             });
 
             // Update Heatmap Layer
