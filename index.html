@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Legal Aid Spatial & Insight Analytics Platform | DIGI Data Camp Season 5</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Font: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        #map { height: calc(100vh - 73px); width: 100%; z-index: 1; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .leaflet-popup-content-wrapper { border-radius: 12px; padding: 4px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-900 text-white px-6 py-3 flex justify-between items-center shadow-lg relative z-10 border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+            <div class="bg-amber-500 text-slate-900 p-2 rounded-lg font-bold">
+                <i class="fa-solid fa-scale-balanced text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold leading-tight flex items-center gap-2">
+                    Smart Legal Aid Spatial & Insight Analytics Platform
+                    <span class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded border border-amber-500/30 font-normal">DIGI Data Camp Season 5</span>
+                </h1>
+                <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการทรัพยากรอัยการอัจฉริยะ (สคช. ทั่วประเทศ)</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="exportPDFReport()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-pdf"></i> ออกรายงาน PDF
+            </button>
+            <button onclick="resetFilters()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition border border-slate-700">
+                <i class="fa-solid fa-rotate-left"></i> รีเซ็ต
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container Layout -->
+    <div class="flex w-full h-[calc(100vh-73px)] relative">
+
+        <!-- Sidebar Panel Controls (Left) -->
+        <aside class="w-96 bg-white border-r border-slate-200 flex flex-col z-10 shadow-xl custom-scrollbar overflow-y-auto">
+            
+            <!-- Statistics Overview Cards -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 gap-3">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500 font-medium">ศูนย์ สคช. ทั้งหมด</p>
+                    <p id="stat-total-offices" class="text-2xl font-bold text-slate-800">121 <span class="text-xs text-slate-400 font-normal">แห่ง</span></p>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs text-slate-500 font-medium">จุดความต้องการสูง (Hotspots)</p>
+                    <p id="stat-hotspots" class="text-2xl font-bold text-rose-600">18 <span class="text-xs text-slate-400 font-normal">พื้นที่</span></p>
+                </div>
+            </div>
+
+            <!-- Filter & Search Controls -->
+            <div class="p-4 border-b border-slate-200 space-y-3">
+                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-amber-500"></i> ตัวกรองและค้นหาพื้นที่
+                </h2>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">ค้นหา สคช. / จังหวัด</label>
+                    <div class="relative">
+                        <input type="text" id="search-input" placeholder="พิมพ์ชื่อ สคช. หรือจังหวัด..." 
+                               class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                               oninput="applyFilters()">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">เลือกเขตภูมิภาค</label>
+                    <select id="region-select" onchange="applyFilters()" class="w-full py-1.5 px-3 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <option value="ALL">แสดงทุกเขตภาค (ทั่วประเทศ)</option>
+                        <option value="ส่วนกลาง">ส่วนกลาง (กรุงเทพฯ และปริมณฑล)</option>
+                        <option value="ภาค 1">ภาค 1 (อยุธยา, นนทบุรี, ปทุมธานี ฯลฯ)</option>
+                        <option value="ภาค 2">ภาค 2 (ชลบุรี, ระยอง, ฉะเชิงเทรา ฯลฯ)</option>
+                        <option value="ภาค 3">ภาค 3 (โคราช, อุบลฯ, ชัยภูมิ ฯลฯ)</option>
+                        <option value="ภาค 4">ภาค 4 (ขอนแก่น, อุดรฯ, ร้อยเอ็ด ฯลฯ)</option>
+                        <option value="ภาค 5">ภาค 5 (เชียงใหม่, เชียงราย, ลำปาง ฯลฯ)</option>
+                        <option value="ภาค 6">ภาค 6 (พิษณุโลก, นครสวรรค์, ตาก ฯลฯ)</option>
+                        <option value="ภาค 7">ภาค 7 (นครปฐม, ราชบุรี, สุพรรณฯ ฯลฯ)</option>
+                        <option value="ภาค 8">ภาค 8 (สุราษฎร์ฯ, ภูเก็ต, นครศรีฯ ฯลฯ)</option>
+                        <option value="ภาค 9">ภาค 9 (สงขลา, ตรัง, 3 จังหวัดภาคใต้ ฯลฯ)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Weighted Model Sliders (Legal Demand Model) -->
+            <div class="p-4 border-b border-slate-200 space-y-3 bg-slate-50/50">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-600"></i> ปรับน้ำหนักดัชนีความต้องการ (Model)
+                    </h2>
+                    <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Weighted Sum</span>
+                </div>
+                
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <div class="flex justify-between text-slate-600 mb-1">
+                            <span>1. ปริมาณกระทู้เว็บบอร์ดกฎหมาย</span>
+                            <span id="weight-webboard-val" class="font-bold text-indigo-600">30%</span>
+                        </div>
+                        <input type="range" id="weight-webboard" min="0" max="50" value="30" oninput="updateWeights()" class="w-full accent-indigo-600">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-slate-600 mb-1">
+                            <span>2. สถิติรับบริการ สคช. ย้อนหลัง</span>
+                            <span id="weight-service-val" class="font-bold text-indigo-600">30%</span>
+                        </div>
+                        <input type="range" id="weight-service" min="0" max="50" value="30" oninput="updateWeights()" class="w-full accent-indigo-600">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-slate-600 mb-1">
+                            <span>3. ดัชนีหนี้สิน/ภาวะเศรษฐกิจ</span>
+                            <span id="weight-econ-val" class="font-bold text-indigo-600">20%</span>
+                        </div>
+                        <input type="range" id="weight-econ" min="0" max="50" value="20" oninput="updateWeights()" class="w-full accent-indigo-600">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-slate-600 mb-1">
+                            <span>4. สัดส่วนกลุ่มเปราะบางในพื้นที่</span>
+                            <span id="weight-vulnerable-val" class="font-bold text-indigo-600">20%</span>
+                        </div>
+                        <input type="range" id="weight-vulnerable" min="0" max="50" value="20" oninput="updateWeights()" class="w-full accent-indigo-600">
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Legal Knowledge Assistant Box -->
+            <div class="p-4 border-b border-slate-200 space-y-3">
+                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-amber-500"></i> AI Legal Assistant
+                </h2>
+                <div class="relative">
+                    <input type="text" id="ai-query" placeholder="ถาม AI เช่น 'ประเด็นหนี้สินภาค 3'..." 
+                           class="w-full pl-3 pr-8 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    <button onclick="askAIAssistant()" class="absolute right-2 top-1.5 text-amber-600 hover:text-amber-700 text-xs">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="ai-response-box" class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-slate-700 hidden">
+                    <p id="ai-response-text" class="leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Comparison Selection Sidepanel -->
+            <div class="p-4 space-y-3 flex-1">
+                <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-code-compare text-emerald-600"></i> เปรียบเทียบความสมดุล (Comparison)
+                </h2>
+                <div id="compare-container" class="space-y-2 text-xs text-slate-500 italic">
+                    กรุณากดปุ่ม <b>"+ เปรียบเทียบ"</b> ใน Popup บนแผนที่ เพื่อเลือก สคช. 2 แห่งมาเปรียบเทียบภาระงาน
+                </div>
+                <button id="btn-run-compare" onclick="runComparisonModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2 rounded-lg font-medium hidden shadow transition">
+                    <i class="fa-solid fa-chart-simple"></i> ประมวลผลเปรียบเทียบ
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- Leaflet Map Canvas (Right) -->
+        <main class="flex-1 relative">
+            <div id="map"></div>
+
+            <!-- Map Layer Toggle Floating Controls -->
+            <div class="absolute top-4 right-4 z- bg-white p-2 rounded-xl shadow-lg border border-slate-200 flex space-x-1 text-xs">
+                <button onclick="toggleLayer('markers')" id="btn-layer-markers" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition">
+                    <i class="fa-solid fa-location-dot"></i> หมุด สคช.
+                </button>
+                <button onclick="toggleLayer('heatmap')" id="btn-layer-heatmap" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition">
+                    <i class="fa-solid fa-fire"></i> Heatmap Demand
+                </button>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="absolute bottom-6 right-4 z- bg-white/90 backdrop-blur p-3 rounded-xl shadow-lg border border-slate-200 text-xs space-y-1.5">
+                <p class="font-semibold text-slate-800 border-b border-slate-200 pb-1">ระดับความต้องการกฎหมาย (Demand Score)</p>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> สูงมาก (> 75 คะแนน)</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> ปานกลาง (50 - 75 คะแนน)</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> ปกติ (< 50 คะแนน)</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Comparison Modal Dialog -->
+    <div id="compare-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z- flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 relative">
+            <button onclick="closeCompareModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-indigo-600"></i> รายงานผลการเปรียบเทียบความสมดุลภาระงาน สคช.
+            </h3>
+            <div id="modal-compare-content" class="grid grid-cols-2 gap-4 text-xs">
+                <!-- Content injected dynamically -->
+            </div>
+            <div class="mt-6 flex justify-end gap-2">
+                <button onclick="closeCompareModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium">ปิด</button>
+                <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium">พิมพ์รายงาน</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Local SKC Data File (Generated by Python script) -->
+    <script src="skc-data-v2.js"></script>
+
+    <!-- Main Logic Script -->
+    <script>
+        let map;
+        let markersLayer = L.layerGroup();
+        let heatLayer = null;
+        let selectedOffices = [];
+        let currentMode = 'markers';
+        let allFeatures = [];
+
+        // 1. Initialize Map
+        function initMap() {
+            map = L.map('map').setView([13.736717, 100.523186], 6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors | AGO Thailand Legal Aid Analytics'
+            }).addTo(map);
+
+            markersLayer.addTo(map);
+
+            // Load GeoJSON data from SKC_OFFICES_DATA (skc-data-v2.js)
+            if (typeof SKC_OFFICES_DATA !== 'undefined' && SKC_OFFICES_DATA.features) {
+                allFeatures = SKC_OFFICES_DATA.features;
+            } else {
+                console.warn("SKC_OFFICES_DATA not found. Using empty fallback.");
+                allFeatures = [];
+            }
+
+            renderData(allFeatures);
+        }
+
+        // 2. Render Markers and Heatmap
+        function renderData(features) {
+            markersLayer.clearLayers();
+            let heatPoints = [];
+            let hotspotCount = 0;
+
+            features.forEach(feature => {
+                const props = feature.properties;
+                const coords = feature.geometry.coordinates;
+                const latLng = [coords[4], coords];
+                const score = props.legal_demand_score || 50;
+
+                if (score > 75) hotspotCount++;
+
+                // Color code by Demand Score
+                const color = score > 75 ? '#f43f5e' : score > 50 ? '#f59e0b' : '#10b981';
+
+                // Create Circle Marker
+                const marker = L.circleMarker(latLng, {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 1.5,
+                    opacity: 1,
+                    fillOpacity: 0.85
+                });
+
+                // Popup Content
+                const popupHtml = `
+                    <div class="p-2 font-sans min-w-[220px]">
+                        <div class="text-xs font-bold text-slate-800 mb-1">${props.title}</div>
+                        <div class="text-[11px] text-slate-500 mb-2">${props.province} (${props.region})</div>
+                        <div class="space-y-1 text-[11px] text-slate-600 border-t border-slate-100 pt-1.5">
+                            <div><i class="fa-solid fa-phone text-slate-400 w-4"></i> ${props.phone}</div>
+                            <div><i class="fa-brands fa-line text-emerald-500 w-4"></i> ${props.line}</div>
+                            <div><i class="fa-solid fa-envelope text-slate-400 w-4"></i> ${props.email}</div>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">Demand Score</span>
+                                <span class="text-xs font-bold" style="color: ${color}">${score}/100</span>
+                            </div>
+                            <button onclick="addToCompare('${props.id}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[10px] font-medium px-2 py-1 rounded border border-indigo-200 transition">
+                                + เปรียบเทียบ
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupHtml);
+                markersLayer.addLayer(marker);
+
+                // Prepare heatmap point
+                heatPoints.push([coords[4], coords, score / 100]);
+            });
+
+            // Update Heatmap Layer
+            if (heatLayer) map.removeLayer(heatLayer);
+            if (typeof L.heatLayer === 'function') {
+                heatLayer = L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 10 });
+            }
+
+            // Update Summary Stats
+            document.getElementById('stat-total-offices').innerText = features.length;
+            document.getElementById('stat-hotspots').innerText = hotspotCount;
+        }
+
+        // 3. Filter Handling
+        function applyFilters() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            const region = document.getElementById('region-select').value;
+
+            const filtered = allFeatures.filter(f => {
+                const props = f.properties;
+                const matchKeyword = props.title.toLowerCase().includes(keyword) || props.province.toLowerCase().includes(keyword);
+                const matchRegion = (region === 'ALL') || (props.region === region);
+                return matchKeyword && matchRegion;
+            });
+
+            renderData(filtered);
+        }
+
+        // 4. Layer Toggle
+        function toggleLayer(mode) {
+            currentMode = mode;
+            if (mode === 'markers') {
+                map.addLayer(markersLayer);
+                if (heatLayer) map.removeLayer(heatLayer);
+                document.getElementById('btn-layer-markers').className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition";
+                document.getElementById('btn-layer-heatmap').className = "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition";
+            } else {
+                map.removeLayer(markersLayer);
+                if (heatLayer) map.addLayer(heatLayer);
+                document.getElementById('btn-layer-heatmap').className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition";
+                document.getElementById('btn-layer-markers').className = "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition";
+            }
+        }
+
+        // 5. Comparison Logic
+        function addToCompare(id) {
+            const office = allFeatures.find(f => f.properties.id === id);
+            if (!office) return;
+
+            if (selectedOffices.some(o => o.properties.id === id)) {
+                alert("สคช. นี้ถูกเลือกในการเปรียบเทียบแล้ว");
+                return;
+            }
+
+            if (selectedOffices.length >= 2) {
+                selectedOffices.shift(); // Keep max 2
+            }
+
+            selectedOffices.push(office);
+            updateCompareUI();
+        }
+
+        function updateCompareUI() {
+            const container = document.getElementById('compare-container');
+            const btn = document.getElementById('btn-run-compare');
+
+            if (selectedOffices.length === 0) {
+                container.innerHTML = "กรุณากดปุ่ม <b>'+ เปรียบเทียบ'</b> ใน Popup บนแผนที่ เพื่อเลือก สคช. 2 แห่ง";
+                btn.classList.add('hidden');
+                return;
+            }
+
+            let html = selectedOffices.map((o, idx) => `
+                <div class="p-2 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center text-xs">
+                    <div>
+                        <span class="font-bold text-slate-800">${idx + 1}. ${o.properties.title}</span>
+                        <span class="text-[10px] text-slate-500 block">${o.properties.province}</span>
+                    </div>
+                    <button onclick="removeCompare('${o.properties.id}')" class="text-rose-500 hover:text-rose-700">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+
+            if (selectedOffices.length === 2) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        function removeCompare(id) {
+            selectedOffices = selectedOffices.filter(o => o.properties.id !== id);
+            updateCompareUI();
+        }
+
+        function runComparisonModal() {
+            if (selectedOffices.length < 2) return;
+            const [o1, o2] = selectedOffices.map(o => o.properties);
+
+            const content = `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <h4 class="font-bold text-slate-800 text-sm border-b pb-1">${o1.title}</h4>
+                    <p><b>จังหวัด:</b> ${o1.province} (${o1.region})</p>
+                    <p><b>Demand Score:</b> <span class="text-rose-600 font-bold">${o1.legal_demand_score}/100</span></p>
+                    <p><b>ประเด็นร้องเรียนหลัก:</b> ${o1.top_issues.join(', ')}</p>
+                    <p><b>เบอร์ติดต่อ:</b> ${o1.phone}</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <h4 class="font-bold text-slate-800 text-sm border-b pb-1">${o2.title}</h4>
+                    <p><b>จังหวัด:</b> ${o2.province} (${o2.region})</p>
+                    <p><b>Demand Score:</b> <span class="text-rose-600 font-bold">${o2.legal_demand_score}/100</span></p>
+                    <p><b>ประเด็นร้องเรียนหลัก:</b> ${o2.top_issues.join(', ')}</p>
+                    <p><b>เบอร์ติดต่อ:</b> ${o2.phone}</p>
+                </div>
+            `;
+
+            document.getElementById('modal-compare-content').innerHTML = content;
+            document.getElementById('compare-modal').classList.remove('hidden');
+        }
+
+        function closeCompareModal() {
+            document.getElementById('compare-modal').classList.add('hidden');
+        }
+
+        // 6. Model Weight Sliders
+        function updateWeights() {
+            document.getElementById('weight-webboard-val').innerText = document.getElementById('weight-webboard').value + '%';
+            document.getElementById('weight-service-val').innerText = document.getElementById('weight-service').value + '%';
+            document.getElementById('weight-econ-val').innerText = document.getElementById('weight-econ').value + '%';
+            document.getElementById('weight-vulnerable-val').innerText = document.getElementById('weight-vulnerable').value + '%';
+        }
+
+        // 7. AI Legal Assistant Search
+        function askAIAssistant() {
+            const query = document.getElementById('ai-query').value.trim();
+            if (!query) return;
+
+            const box = document.getElementById('ai-response-box');
+            const text = document.getElementById('ai-response-text');
+
+            box.classList.remove('hidden');
+            text.innerText = "🤖 AI กำลังประมวลผลวิเคราะห์คำถามและสกัดองค์ความรู้จากฐานข้อมูลกฎหมาย...";
+
+            setTimeout(() => {
+                text.innerText = `💡 [วิเคราะห์ AI]: จากคำถาม '${query}' พบว่าประเด็นความเดือดร้อนหลักในพื้นที่เชื่อมโยงกับปัญหาหนี้สินนอกระบบและสัญญาไม่เป็นธรรม ข้อแนะนำเชิงนโยบาย: ควรจัดตั้งคลินิกกฎหมายเคลื่อนที่ สคช. ร่วมกับไกล่เกลี่ยข้อตกลงในระดับอำเภอ`;
+            }, 1000);
+        }
+
+        // 8. Utility Reset & PDF Export
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('region-select').value = 'ALL';
+            applyFilters();
+            map.setView([13.736717, 100.523186], 6);
+        }
+
+        function exportPDFReport() {
+            window.print();
+        }
+
+        // Run Map on Load
+        window.onload = initMap;
+    </script>
+</body>
+</html>
