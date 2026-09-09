@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Legal Aid Spatial & Insight Analytics Platform | Prototype</title>
+    <title>Smart Legal Aid Spatial & Insight Analytics Platform | DIGI Data Camp Season 5</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Leaflet CSS & JS -->
@@ -29,14 +29,14 @@
             <div>
                 <h1 class="flex flex-wrap items-center gap-2 text-base font-bold leading-tight sm:text-lg">
                     Smart Legal Aid Spatial & Insight Analytics Platform
-                    <span class="app-badge text-xs px-2 py-0.5 rounded font-normal">[ Prototype ]</span>
+                    <span class="app-badge text-xs px-2 py-0.5 rounded font-normal">DIGI Data Camp Season 5</span>
                 </h1>
                 <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการทรัพยากรอัจฉริยะ (สคช. ทั่วประเทศ)</p>
             </div>
         </div>
         <div class="flex shrink-0 items-center space-x-2 sm:space-x-3">
             <button onclick="exportPDFReport()" class="app-report-button text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-file-pdf"></i> รายงานสรุป PDF
+                <i class="fa-solid fa-file-pdf"></i> ออกรายงาน PDF
             </button>
             <button onclick="resetFilters()" class="app-reset-button text-xs px-3 py-2 rounded-lg transition">
                 <i class="fa-solid fa-rotate-left"></i> รีเซ็ต
@@ -100,6 +100,23 @@
                         <option value="ภาค 9">ภาค 9 (สงขลา, ตรัง, 3 จังหวัดภาคใต้ ฯลฯ)</option>
                     </select>
                 </div>
+            </div>
+
+            <!-- Attorney Helps Actual Data: parsed locally in the browser, never used to recolor office markers -->
+            <div class="p-4 border-b border-slate-200 space-y-3 bg-sky-50/50">
+                <div class="flex items-start justify-between gap-2">
+                    <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-database text-sky-600"></i> ข้อมูลจริงอัยการช่วยได้
+                    </h2>
+                    <span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-700">ระดับประเทศ</span>
+                </div>
+                <p class="text-[11px] leading-relaxed text-slate-600">เลือกไฟล์ CSV เพื่อสรุปปริมาณการใช้บริการ ประเด็นกฎหมาย และกลุ่มอายุสำหรับรายงานผู้บริหาร/AI ข้อมูลอ่านในเบราว์เซอร์เท่านั้น และไม่เปลี่ยนสีหมุด สคช.</p>
+                <label class="block cursor-pointer rounded-lg border border-dashed border-sky-300 bg-white px-3 py-2 text-center text-xs font-medium text-sky-700 hover:bg-sky-50">
+                    <i class="fa-solid fa-file-arrow-up"></i> เลือกไฟล์ CSV อัยการช่วยได้
+                    <input id="attorney-aid-files" type="file" accept=".csv,text/csv" multiple class="hidden" onchange="loadAttorneyAidFiles(this.files)">
+                </label>
+                <div id="attorney-aid-status" class="hidden rounded-lg border border-sky-100 bg-white p-2.5 text-xs text-slate-700"></div>
+                <button id="clear-attorney-aid" onclick="clearAttorneyAidData()" class="hidden w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">ล้างข้อมูลที่เลือก</button>
             </div>
 
             <!-- AI Legal Knowledge Assistant Box -->
@@ -230,11 +247,172 @@
         let selectedOffices = [];
         let currentMode = 'markers';
         let allFeatures = [];
+        // Aggregated user-selected data. The raw CSV rows stay in the browser and are not uploaded.
+        let attorneyAidAnalytics = null;
         // เปลี่ยนค่านี้เมื่อ ngrok สร้าง URL ใหม่
         const AI_API_BASE_URL = 'https://tipped-roast-tamale.ngrok-free.dev';
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, char => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         })[char]);
+
+        function compactKey(value) {
+            return String(value ?? '').replace(/^\uFEFF/, '').replace(/[^a-z0-9ก-๙]/gi, '').toLowerCase();
+        }
+
+        function readNumber(value) {
+            const cleaned = String(value ?? '').replace(/,/g, '').replace(/[^0-9.-]/g, '');
+            const number = Number(cleaned);
+            return Number.isFinite(number) ? number : 0;
+        }
+
+        function parseCsv(text) {
+            const rows = [];
+            let row = [], cell = '', quoted = false;
+            const source = String(text ?? '').replace(/^\uFEFF/, '');
+            for (let index = 0; index < source.length; index += 1) {
+                const character = source[index];
+                if (character === '"') {
+                    if (quoted && source[index + 1] === '"') { cell += '"'; index += 1; }
+                    else quoted = !quoted;
+                } else if (character === ',' && !quoted) {
+                    row.push(cell.trim()); cell = '';
+                } else if ((character === '\n' || character === '\r') && !quoted) {
+                    if (character === '\r' && source[index + 1] === '\n') index += 1;
+                    row.push(cell.trim());
+                    if (row.some(value => value !== '')) rows.push(row);
+                    row = []; cell = '';
+                } else cell += character;
+            }
+            row.push(cell.trim());
+            if (row.some(value => value !== '')) rows.push(row);
+            if (rows.length < 2) return [];
+            const headers = rows[0].map(header => header.replace(/^\uFEFF/, '').trim());
+            return rows.slice(1).map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])));
+        }
+
+        function matchingField(record, requiredWords) {
+            return Object.keys(record || {}).find(field => {
+                const key = compactKey(field);
+                return requiredWords.every(word => key.includes(compactKey(word)));
+            });
+        }
+
+        function classifyAttorneyAidFile(fileName) {
+            const name = compactKey(fileName);
+            if (name.includes('จำนวนการใช้งานทั้งหมดรายปี')) return 'annual';
+            if (name.includes('เรื่องที่ปรึกษาและปี') && !name.includes('ช่วงอายุ') && !name.includes('อาชีพ')) return 'issues';
+            if (name.includes('ช่วงอายุเพศและปี')) return 'age_gender';
+            return 'other';
+        }
+
+        function makeAttorneyAidSummary(sources) {
+            const annualByYear = new Map();
+            sources.annual.forEach(record => {
+                const yearField = matchingField(record, ['ปี']);
+                const countField = matchingField(record, ['จำนวนเรื่อง']);
+                const year = String(record[yearField] ?? '').trim();
+                if (year && countField) annualByYear.set(year, (annualByYear.get(year) || 0) + readNumber(record[countField]));
+            });
+            const annual_usage = [...annualByYear.entries()]
+                .map(([year, cases]) => ({ year, cases: Math.round(cases) }))
+                .sort((a, b) => Number(a.year) - Number(b.year));
+
+            const issueRows = [];
+            sources.issues.forEach(record => {
+                const yearField = matchingField(record, ['ปี']);
+                const issueField = matchingField(record, ['เรื่อง', 'ปรึกษา']);
+                const countField = matchingField(record, ['จำนวนเรื่อง']);
+                if (issueField && countField) issueRows.push({
+                    year: String(record[yearField] ?? '').trim(),
+                    issue: String(record[issueField] ?? '').trim(),
+                    cases: readNumber(record[countField])
+                });
+            });
+            const latestIssueYear = issueRows.reduce((latest, item) => Number(item.year) > Number(latest) ? item.year : latest, '');
+            const issuesByName = new Map();
+            issueRows.filter(item => item.year === latestIssueYear).forEach(item => {
+                if (item.issue) issuesByName.set(item.issue, (issuesByName.get(item.issue) || 0) + item.cases);
+            });
+            const issueTotal = [...issuesByName.values()].reduce((sum, cases) => sum + cases, 0);
+            const legal_issue_mix = {
+                year: latestIssueYear || null,
+                total_cases: Math.round(issueTotal),
+                top_categories: [...issuesByName.entries()].map(([category, cases]) => ({ category, cases: Math.round(cases) }))
+                    .sort((a, b) => b.cases - a.cases).slice(0, 5)
+            };
+
+            const agesByGroup = new Map();
+            sources.age_gender.forEach(record => {
+                const ageField = matchingField(record, ['ช่วงอายุ']);
+                const countField = matchingField(record, ['จำนวนเรื่อง']);
+                if (ageField && countField) {
+                    const ageGroup = String(record[ageField] ?? '').trim();
+                    if (ageGroup) agesByGroup.set(ageGroup, (agesByGroup.get(ageGroup) || 0) + readNumber(record[countField]));
+                }
+            });
+            const ageTotal = [...agesByGroup.values()].reduce((sum, cases) => sum + cases, 0);
+            const age_group_mix = [...agesByGroup.entries()].map(([age_group, cases]) => ({
+                age_group, cases: Math.round(cases), share_pct: ageTotal ? Math.round((cases / ageTotal) * 1000) / 10 : 0
+            })).sort((a, b) => b.cases - a.cases);
+
+            return {
+                source_label: 'ข้อมูลจริงจากไฟล์ CSV อัยการช่วยได้ (สรุประดับประเทศ)',
+                files_selected: sources.selected,
+                files_used: sources.recognized,
+                annual_usage,
+                legal_issue_mix,
+                age_group_mix,
+                coverage_note: 'ไม่มีรหัส สคช. จังหวัด หรืออำเภอ จึงใช้ประกอบภาพรวมประเทศและไม่ใช้คำนวณสีหมุดรายสำนักงาน'
+            };
+        }
+
+        function renderAttorneyAidStatus() {
+            const status = document.getElementById('attorney-aid-status');
+            const clearButton = document.getElementById('clear-attorney-aid');
+            if (!attorneyAidAnalytics) { status.classList.add('hidden'); clearButton.classList.add('hidden'); return; }
+            const annual = attorneyAidAnalytics.annual_usage;
+            const latest = annual[annual.length - 1];
+            const topIssue = attorneyAidAnalytics.legal_issue_mix.top_categories[0];
+            const olderAdults = attorneyAidAnalytics.age_group_mix.find(item => /60|ผู้สูงอายุ/.test(item.age_group));
+            status.classList.remove('hidden'); clearButton.classList.remove('hidden');
+            status.innerHTML = `<p class="font-semibold text-sky-800"><i class="fa-solid fa-circle-check"></i> เลือก ${attorneyAidAnalytics.files_selected} ไฟล์ และใช้สรุป ${attorneyAidAnalytics.files_used} ไฟล์</p>
+                <ul class="mt-1.5 list-disc space-y-1 pl-4">
+                    <li>${latest ? `ปี ${escapeHtml(latest.year)}: ${latest.cases.toLocaleString('th-TH')} เรื่อง` : 'ไม่พบตารางจำนวนการใช้งานรายปี'}</li>
+                    <li>${topIssue ? `ประเด็นสูงสุดปี ${escapeHtml(attorneyAidAnalytics.legal_issue_mix.year)}: ${escapeHtml(topIssue.category)} (${topIssue.cases.toLocaleString('th-TH')} เรื่อง)` : 'ไม่พบตารางประเด็นที่ปรึกษารายปี'}</li>
+                    <li>${olderAdults ? `กลุ่มอายุ ${escapeHtml(olderAdults.age_group)}: ${olderAdults.share_pct}% ของข้อมูลช่วงอายุ` : 'ไม่พบตารางช่วงอายุ–เพศ'}</li>
+                </ul><p class="mt-2 text-[10px] text-slate-500">ใช้ในรายงานผู้บริหารและบริบท AI เท่านั้น ไม่ส่งแถวข้อมูลดิบออกจากเบราว์เซอร์</p>`;
+        }
+
+        async function loadAttorneyAidFiles(fileList) {
+            const status = document.getElementById('attorney-aid-status');
+            const files = Array.from(fileList || []).filter(file => file.name.toLowerCase().endsWith('.csv'));
+            status.classList.remove('hidden');
+            status.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sky-600"></i> กำลังอ่านและสรุปข้อมูล CSV ในอุปกรณ์นี้...';
+            const sources = { annual: [], issues: [], age_gender: [], recognized: 0, selected: files.length };
+            try {
+                for (const file of files) {
+                    const kind = classifyAttorneyAidFile(file.name);
+                    if (kind === 'other') continue;
+                    const records = parseCsv(await file.text());
+                    if (!records.length) continue;
+                    sources[kind].push(...records);
+                    sources.recognized += 1;
+                }
+                if (!sources.recognized) throw new Error('ไม่พบชื่อไฟล์ในรูปแบบที่ระบบรองรับ');
+                attorneyAidAnalytics = makeAttorneyAidSummary(sources);
+                renderAttorneyAidStatus();
+            } catch (error) {
+                console.error('Attorney Helps CSV parse failed:', error);
+                attorneyAidAnalytics = null;
+                status.innerHTML = `<span class="text-rose-700"><i class="fa-solid fa-triangle-exclamation"></i> อ่านไฟล์ไม่สำเร็จ: ${escapeHtml(error.message || 'ตรวจสอบรูปแบบ CSV')}</span>`;
+            }
+        }
+
+        function clearAttorneyAidData() {
+            attorneyAidAnalytics = null;
+            document.getElementById('attorney-aid-files').value = '';
+            renderAttorneyAidStatus();
+        }
 
         // 1. Initialize Map
         function initMap() {
@@ -551,7 +729,12 @@
                         // Required for browser fetch requests to a free ngrok tunnel.
                         'ngrok-skip-browser-warning': 'true'
                     },
-                    body: JSON.stringify({ query, office })
+                    body: JSON.stringify({
+                        query,
+                        office,
+                        // Only the aggregate summary is sent to the local AI gateway; CSV rows remain on this device.
+                        national_context: attorneyAidAnalytics || undefined
+                    })
                 });
                 const payload = await response.json();
                 if (!response.ok) throw new Error(payload.error || 'AI service error');
@@ -618,7 +801,8 @@
                 hotspots,
                 region_summary,
                 top_issues: Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([issue, count]) => ({ issue, count })),
-                model_weights: getNormalizedWeights()
+                model_weights: getNormalizedWeights(),
+                attorney_aid_actual_data: attorneyAidAnalytics || null
             };
         }
 
@@ -647,7 +831,10 @@
                         </div>
                         <span class="text-right text-rose-600">Hotspot ${item.hotspots}</span>
                     </div>`).join('');
-                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.average_legal_demand_score}/100</b><br><span class="text-xs">คะแนนเฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspots</span></div></div><section class="rounded-xl border border-indigo-100 bg-white p-4"><div class="mb-3 flex items-center justify-between"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> คะแนนความต้องการเฉลี่ยรายภูมิภาค</h4><span class="text-xs text-slate-500">ตัวเลขบนแท่ง = คะแนนเฉลี่ย / 100</span></div><div class="space-y-2">${regionChart}</div></section><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
+                const actualData = dashboard.attorney_aid_actual_data;
+                const latestActualAnnual = actualData?.annual_usage?.[actualData.annual_usage.length - 1];
+                const actualDataCard = actualData ? `<section class="rounded-xl border border-sky-200 bg-sky-50 p-4"><h4 class="font-bold text-sky-900"><i class="fa-solid fa-database"></i> ข้อมูลจริงอัยการช่วยได้ (ระดับประเทศ)</h4><p class="mt-1 text-xs text-slate-600">ข้อมูลประกอบจาก CSV ที่ผู้ใช้เลือก ไม่ถูกนำไปเปลี่ยนสีหมุด สคช.</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุด</b><br>${latestActualAnnual ? `${escapeHtml(latestActualAnnual.year)}: ${Number(latestActualAnnual.cases).toLocaleString('th-TH')} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ประเด็นสูงสุด</b><br>${actualData.legal_issue_mix?.top_categories?.[0] ? `${escapeHtml(actualData.legal_issue_mix.top_categories[0].category)}` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ขอบเขตข้อมูล</b><br>ระดับประเทศ</div></div></section>` : '<section class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600"><i class="fa-solid fa-circle-info"></i> ยังไม่ได้เลือกไฟล์ CSV อัยการช่วยได้ รายงานนี้จึงใช้ข้อมูลดัชนีต้นแบบของ สคช. เท่านั้น</section>';
+                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.average_legal_demand_score}/100</b><br><span class="text-xs">คะแนนเฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspots</span></div></div>${actualDataCard}<section class="rounded-xl border border-indigo-100 bg-white p-4"><div class="mb-3 flex items-center justify-between"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> คะแนนความต้องการเฉลี่ยรายภูมิภาค</h4><span class="text-xs text-slate-500">ตัวเลขบนแท่ง = คะแนนเฉลี่ย / 100</span></div><div class="space-y-2">${regionChart}</div></section><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
             } catch (error) {
                 console.error('Executive report failed:', error);
                 content.innerHTML = '<div class="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">ไม่สามารถเชื่อมต่อ AI เพื่อสร้างรายงานได้ กรุณาตรวจ Flask, ngrok และ URL ใน index.html</div>';
