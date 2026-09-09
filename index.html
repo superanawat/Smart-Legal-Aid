@@ -230,7 +230,7 @@
         let currentMode = 'markers';
         let allFeatures = [];
         // เปลี่ยนค่านี้เมื่อ ngrok สร้าง URL ใหม่
-        const AI_API_BASE_URL = 'https://tender-roast-tamale.ngrok-free.dev';
+        const AI_API_BASE_URL = 'https://tipped-roast-tamale.ngrok-free.dev';
 
         // 1. Initialize Map
         function initMap() {
@@ -443,7 +443,11 @@
             try {
                 const response = await fetch(`${AI_API_BASE_URL}/analyze`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Required for browser fetch requests to a free ngrok tunnel.
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ query, office })
                 });
                 const payload = await response.json();
