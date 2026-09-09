@@ -108,8 +108,8 @@
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">เลือกเขตภูมิภาค</label>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">เลือกเขตภูมิภาค</label>
                     <select id="region-select" onchange="applyFilters()" class="w-full py-1.5 px-3 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none">
                         <option value="ALL">แสดงทุกเขตภาค (ทั่วประเทศ)</option>
                         <option value="ส่วนกลาง">ส่วนกลาง (กรุงเทพฯ และปริมณฑล)</option>
@@ -163,9 +163,15 @@
                             <span id="weight-vulnerable-val" class="font-bold text-indigo-600">20%</span>
                         </div>
                         <input type="range" id="weight-vulnerable" min="0" max="50" value="20" oninput="updateWeights()" class="w-full accent-indigo-600">
-                    </div>
                 </div>
             </div>
+            <div class="pt-1">
+                <button onclick="findNearestOffice()" class="w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
+                    <i class="fa-solid fa-location-crosshairs"></i> ค้นหา สคช. ใกล้ฉัน
+                </button>
+                <div id="nearby-result" class="mt-2 hidden rounded-lg border border-indigo-100 bg-indigo-50 p-2.5 text-xs text-slate-700"></div>
+            </div>
+        </div>
 
             <!-- AI Legal Knowledge Assistant Box -->
             <div class="p-4 border-b border-slate-200 space-y-3">
@@ -250,6 +256,7 @@
         let map;
         let markersLayer = L.layerGroup();
         let heatLayer = null;
+        let userLocationMarker = null;
         let selectedOffices = [];
         let currentMode = 'markers';
         let allFeatures = [];
@@ -374,6 +381,49 @@
             });
 
             renderData(filtered);
+        }
+
+        function distanceKm(lat1, lng1, lat2, lng2) {
+            const earthRadiusKm = 6371;
+            const radians = degrees => degrees * Math.PI / 180;
+            const dLat = radians(lat2 - lat1);
+            const dLng = radians(lng2 - lng1);
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(dLng / 2) ** 2;
+            return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function findNearestOffice() {
+            const result = document.getElementById('nearby-result');
+            result.classList.remove('hidden');
+            result.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอ่านตำแหน่งของคุณ...';
+            if (!navigator.geolocation) {
+                result.textContent = 'เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง';
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(position => {
+                const { latitude, longitude } = position.coords;
+                let nearest = null;
+                allFeatures.forEach(feature => {
+                    const [lng, lat] = feature.geometry?.coordinates || [];
+                    if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return;
+                    const distance = distanceKm(latitude, longitude, Number(lat), Number(lng));
+                    if (!nearest || distance < nearest.distance) nearest = { feature, lat: Number(lat), lng: Number(lng), distance };
+                });
+                if (!nearest) {
+                    result.textContent = 'ไม่พบพิกัด สคช. สำหรับคำนวณระยะทาง';
+                    return;
+                }
+                const props = nearest.feature.properties;
+                const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${nearest.lat},${nearest.lng}&travelmode=driving`;
+                result.innerHTML = `<p class="font-bold text-indigo-900">สคช. ที่ใกล้ที่สุด</p><p class="mt-1">${escapeHtml(props.title)}<br>${escapeHtml(props.district || '-')}, ${escapeHtml(props.province || '-')}<br><b>ระยะทางโดยเส้นตรง:</b> ${nearest.distance.toFixed(1)} กม.</p><a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block rounded bg-indigo-600 px-2 py-1.5 text-white hover:bg-indigo-500"><i class="fa-solid fa-diamond-turn-right"></i> เปิดเส้นทางใน Google Maps</a>`;
+                if (userLocationMarker) map.removeLayer(userLocationMarker);
+                userLocationMarker = L.circleMarker([latitude, longitude], { radius: 7, color: '#1d4ed8', fillColor: '#60a5fa', fillOpacity: 1, weight: 2 }).addTo(map).bindPopup('ตำแหน่งของคุณ');
+                map.setView([nearest.lat, nearest.lng], 10);
+                L.popup().setLatLng([nearest.lat, nearest.lng]).setContent(`<b>${escapeHtml(props.title)}</b><br>สคช. ที่ใกล้ที่สุด (${nearest.distance.toFixed(1)} กม.)`).openOn(map);
+            }, error => {
+                const messages = { 1: 'คุณยังไม่ได้อนุญาตให้เว็บไซต์เข้าถึงตำแหน่ง', 2: 'ไม่สามารถระบุตำแหน่งอุปกรณ์ได้', 3: 'การระบุตำแหน่งใช้เวลานานเกินไป' };
+                result.textContent = messages[error.code] || 'ไม่สามารถอ่านตำแหน่งได้';
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
         }
 
         // 4. Layer Toggle
