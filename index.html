@@ -1079,11 +1079,18 @@
         }
 
         // Run Map on Load
+        // เปลี่ยนจากเดิม
+        // window.onload = () => {
+        //     initMap();
+        //     loadPublicLegalAidStats();
+        //     loadProvincialIndicators();
+        // };
+        
+        // เป็นแบบนี้:
         window.onload = async () => {
             initMap();
             loadPublicLegalAidStats();
-            await loadProvincialIndicators(); // รอให้โหลดข้อมูลจังหวัดเสร็จก่อน แล้ว render ซ้ำชัวร์ๆ
-            if (allFeatures.length) renderData(allFeatures);
+            await loadProvincialIndicators(); // รอโหลดข้อมูลจังหวัดเสร็จก่อน ค่อยคอนเฟิร์มสถานะสี
         };
     </script>
 </body>
