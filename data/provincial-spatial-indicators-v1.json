@@ -1,0 +1,487 @@
+{
+  "schema_version": "1.0",
+  "source_label": "สัดส่วนคนจน (ด้านรายจ่าย) รายจังหวัด",
+  "source_type": "public provincial socioeconomic indicator",
+  "source_catalog_url": "https://data.go.th/dataset/ratio_poor",
+  "sources": [
+    {
+      "resource_id": "e0fe6a81-9214-4cac-9396-8334a831a98c",
+      "api_url": "https://data.go.th/api/3/action/datastore_search?resource_id=e0fe6a81-9214-4cac-9396-8334a831a98c&limit=1000",
+      "record_count": 924
+    }
+  ],
+  "methodology": {
+    "indicator": "ร้อยละประชากรที่มีรายจ่ายอุปโภคบริโภคต่ำกว่าเส้นความยากจน",
+    "score_formula": "(poverty_rate_pct - nationwide_min) / (nationwide_max - nationwide_min) * 100",
+    "direction": "คะแนนสูงหมายถึงสัดส่วนคนจนสูงกว่าเมื่อเทียบจังหวัดอื่นในปีล่าสุดที่เผยแพร่"
+  },
+  "data_limitations": "เป็นตัวชี้วัดเศรษฐกิจระดับจังหวัด ไม่ใช่จำนวนคำร้องกฎหมาย ภาระงาน หรือคุณภาพบริการของสำนักงาน สคช.; สำนักงานในจังหวัดเดียวกันใช้ค่าจังหวัดเดียวกัน",
+  "province_count": 77,
+  "latest_years_available": [
+    2566
+  ],
+  "provinces": [
+    {
+      "province": "กระบี่",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.9976,
+      "spatial_need_proxy_score": 12.8
+    },
+    {
+      "province": "กรุงเทพมหานคร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.4199,
+      "spatial_need_proxy_score": 1.8
+    },
+    {
+      "province": "กาญจนบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 6.768,
+      "spatial_need_proxy_score": 29.0
+    },
+    {
+      "province": "กาฬสินธุ์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 6.6083,
+      "spatial_need_proxy_score": 28.3
+    },
+    {
+      "province": "กำแพงเพชร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.415,
+      "spatial_need_proxy_score": 10.3
+    },
+    {
+      "province": "ขอนแก่น",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.0,
+      "spatial_need_proxy_score": 0.0
+    },
+    {
+      "province": "จันทบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.3949,
+      "spatial_need_proxy_score": 10.3
+    },
+    {
+      "province": "ฉะเชิงเทรา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.4364,
+      "spatial_need_proxy_score": 1.9
+    },
+    {
+      "province": "ชลบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.3379,
+      "spatial_need_proxy_score": 1.4
+    },
+    {
+      "province": "ชัยนาท",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 6.7067,
+      "spatial_need_proxy_score": 28.7
+    },
+    {
+      "province": "ชัยภูมิ",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.3619,
+      "spatial_need_proxy_score": 10.1
+    },
+    {
+      "province": "ชุมพร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.3047,
+      "spatial_need_proxy_score": 5.6
+    },
+    {
+      "province": "ตรัง",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 8.6977,
+      "spatial_need_proxy_score": 37.2
+    },
+    {
+      "province": "ตราด",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.9057,
+      "spatial_need_proxy_score": 21.0
+    },
+    {
+      "province": "ตาก",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 9.5967,
+      "spatial_need_proxy_score": 41.1
+    },
+    {
+      "province": "นครนายก",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.6675,
+      "spatial_need_proxy_score": 2.9
+    },
+    {
+      "province": "นครปฐม",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.4899,
+      "spatial_need_proxy_score": 2.1
+    },
+    {
+      "province": "นครพนม",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 5.5548,
+      "spatial_need_proxy_score": 23.8
+    },
+    {
+      "province": "นครราชสีมา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.0179,
+      "spatial_need_proxy_score": 30.0
+    },
+    {
+      "province": "นครศรีธรรมราช",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 8.177,
+      "spatial_need_proxy_score": 35.0
+    },
+    {
+      "province": "นครสวรรค์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.3004,
+      "spatial_need_proxy_score": 5.6
+    },
+    {
+      "province": "นนทบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.0,
+      "spatial_need_proxy_score": 0.0
+    },
+    {
+      "province": "นราธิวาส",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 19.118,
+      "spatial_need_proxy_score": 81.9
+    },
+    {
+      "province": "น่าน",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.9334,
+      "spatial_need_proxy_score": 12.6
+    },
+    {
+      "province": "บึงกาฬ",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.4671,
+      "spatial_need_proxy_score": 2.0
+    },
+    {
+      "province": "บุรีรัมย์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.7398,
+      "spatial_need_proxy_score": 11.7
+    },
+    {
+      "province": "ปทุมธานี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.3898,
+      "spatial_need_proxy_score": 1.7
+    },
+    {
+      "province": "ประจวบคีรีขันธ์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 9.4894,
+      "spatial_need_proxy_score": 40.6
+    },
+    {
+      "province": "ปราจีนบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.6304,
+      "spatial_need_proxy_score": 7.0
+    },
+    {
+      "province": "ปัตตานี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 23.3553,
+      "spatial_need_proxy_score": 100.0
+    },
+    {
+      "province": "พระนครศรีอยุธยา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.5137,
+      "spatial_need_proxy_score": 6.5
+    },
+    {
+      "province": "พะเยา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.6171,
+      "spatial_need_proxy_score": 6.9
+    },
+    {
+      "province": "พังงา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.3474,
+      "spatial_need_proxy_score": 14.3
+    },
+    {
+      "province": "พัทลุง",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 12.0576,
+      "spatial_need_proxy_score": 51.6
+    },
+    {
+      "province": "พิจิตร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.8804,
+      "spatial_need_proxy_score": 3.8
+    },
+    {
+      "province": "พิษณุโลก",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.6449,
+      "spatial_need_proxy_score": 7.0
+    },
+    {
+      "province": "ภูเก็ต",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.0,
+      "spatial_need_proxy_score": 0.0
+    },
+    {
+      "province": "มหาสารคาม",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.3287,
+      "spatial_need_proxy_score": 1.4
+    },
+    {
+      "province": "มุกดาหาร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.8801,
+      "spatial_need_proxy_score": 16.6
+    },
+    {
+      "province": "ยะลา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 9.0142,
+      "spatial_need_proxy_score": 38.6
+    },
+    {
+      "province": "ยโสธร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.1886,
+      "spatial_need_proxy_score": 5.1
+    },
+    {
+      "province": "ระนอง",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 6.8259,
+      "spatial_need_proxy_score": 29.2
+    },
+    {
+      "province": "ระยอง",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.0,
+      "spatial_need_proxy_score": 0.0
+    },
+    {
+      "province": "ราชบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.2615,
+      "spatial_need_proxy_score": 5.4
+    },
+    {
+      "province": "ร้อยเอ็ด",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.4385,
+      "spatial_need_proxy_score": 6.2
+    },
+    {
+      "province": "ลพบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.7103,
+      "spatial_need_proxy_score": 20.2
+    },
+    {
+      "province": "ลำปาง",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.5541,
+      "spatial_need_proxy_score": 19.5
+    },
+    {
+      "province": "ลำพูน",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.0182,
+      "spatial_need_proxy_score": 0.1
+    },
+    {
+      "province": "ศรีสะเกษ",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.0728,
+      "spatial_need_proxy_score": 17.4
+    },
+    {
+      "province": "สกลนคร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 6.0971,
+      "spatial_need_proxy_score": 26.1
+    },
+    {
+      "province": "สงขลา",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.944,
+      "spatial_need_proxy_score": 8.3
+    },
+    {
+      "province": "สตูล",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 10.803,
+      "spatial_need_proxy_score": 46.3
+    },
+    {
+      "province": "สมุทรปราการ",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.5357,
+      "spatial_need_proxy_score": 2.3
+    },
+    {
+      "province": "สมุทรสงคราม",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.6748,
+      "spatial_need_proxy_score": 15.7
+    },
+    {
+      "province": "สมุทรสาคร",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.1623,
+      "spatial_need_proxy_score": 9.3
+    },
+    {
+      "province": "สระบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 1.0597,
+      "spatial_need_proxy_score": 4.5
+    },
+    {
+      "province": "สระแก้ว",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.0719,
+      "spatial_need_proxy_score": 30.3
+    },
+    {
+      "province": "สิงห์บุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.3081,
+      "spatial_need_proxy_score": 18.4
+    },
+    {
+      "province": "สุพรรณบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.1243,
+      "spatial_need_proxy_score": 30.5
+    },
+    {
+      "province": "สุราษฎร์ธานี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.6671,
+      "spatial_need_proxy_score": 15.7
+    },
+    {
+      "province": "สุรินทร์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 5.5672,
+      "spatial_need_proxy_score": 23.8
+    },
+    {
+      "province": "สุโขทัย",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.4873,
+      "spatial_need_proxy_score": 14.9
+    },
+    {
+      "province": "หนองคาย",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.9928,
+      "spatial_need_proxy_score": 4.3
+    },
+    {
+      "province": "หนองบัวลำภู",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 9.6109,
+      "spatial_need_proxy_score": 41.2
+    },
+    {
+      "province": "อำนาจเจริญ",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.6044,
+      "spatial_need_proxy_score": 15.4
+    },
+    {
+      "province": "อุดรธานี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.6491,
+      "spatial_need_proxy_score": 19.9
+    },
+    {
+      "province": "อุตรดิตถ์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.2073,
+      "spatial_need_proxy_score": 30.9
+    },
+    {
+      "province": "อุทัยธานี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.5036,
+      "spatial_need_proxy_score": 15.0
+    },
+    {
+      "province": "อุบลราชธานี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.8904,
+      "spatial_need_proxy_score": 33.8
+    },
+    {
+      "province": "อ่างทอง",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.6008,
+      "spatial_need_proxy_score": 32.5
+    },
+    {
+      "province": "เชียงราย",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 7.9686,
+      "spatial_need_proxy_score": 34.1
+    },
+    {
+      "province": "เชียงใหม่",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.1077,
+      "spatial_need_proxy_score": 9.0
+    },
+    {
+      "province": "เพชรบุรี",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 4.7606,
+      "spatial_need_proxy_score": 20.4
+    },
+    {
+      "province": "เพชรบูรณ์",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 2.7658,
+      "spatial_need_proxy_score": 11.8
+    },
+    {
+      "province": "เลย",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 0.4839,
+      "spatial_need_proxy_score": 2.1
+    },
+    {
+      "province": "แพร่",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 3.494,
+      "spatial_need_proxy_score": 15.0
+    },
+    {
+      "province": "แม่ฮ่องสอน",
+      "fiscal_year_be": 2566,
+      "poverty_rate_pct": 12.4875,
+      "spatial_need_proxy_score": 53.5
+    }
+  ]
+}

@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Leaflet Heatmap Plugin -->
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -31,7 +30,7 @@
                     Smart Legal Aid Spatial & Insight Analytics Platform
                     <span class="app-badge text-xs px-2 py-0.5 rounded font-normal">[PROTOTYPE]</span>
                 </h1>
-                <p class="text-xs text-slate-400">ระบบวิเคราะห์พิกัดความต้องการช่วยเหลือทางกฎหมาย และบริหารจัดการอัจฉริยะ (สคช. ทั่วประเทศ)</p>
+                <p class="text-xs text-slate-400">ระบบแผนที่จุดบริการและสถิติการรับคำปรึกษาทางกฎหมาย (สคช. ทั่วประเทศ)</p>
             </div>
         </div>
         <div class="flex shrink-0 items-center space-x-2 sm:space-x-3">
@@ -57,8 +56,8 @@
                     <p id="stat-total-offices" class="text-2xl font-bold text-slate-800">121 <span class="text-xs text-slate-400 font-normal">แห่ง</span></p>
                 </div>
                 <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                    <p class="text-xs text-slate-500 font-medium">จุดความต้องการสูง (Hotspots)</p>
-                    <p id="stat-hotspots" class="text-2xl font-bold text-rose-600">18 <span class="text-xs text-slate-400 font-normal">พื้นที่</span></p>
+                    <p class="text-xs text-slate-500 font-medium">จุดเสี่ยงเชิงพื้นที่สูง</p>
+                    <p id="stat-hotspots" class="text-2xl font-bold text-rose-600">– <span class="text-xs text-slate-400 font-normal">แห่ง</span></p>
                 </div>
             </div>
 
@@ -168,44 +167,18 @@
                 </button>
             </div>
 
-            <!-- Weighted Model Sliders (Legal Demand Model) -->
+            <!-- Source-backed national indicator; not used to rank individual offices. -->
             <div class="p-4 border-b border-slate-200 space-y-3 bg-slate-50/50">
                 <div class="flex justify-between items-center">
                     <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-indigo-600"></i> ปรับน้ำหนักดัชนีความต้องการ (Model)
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i> ดัชนีเชิงพื้นที่จากข้อมูลจริง
                     </h2>
-                    <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Weighted Sum</span>
+                    <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">ระดับประเทศ</span>
                 </div>
-                
-                <div class="space-y-2 text-xs">
-                    <div>
-                        <div class="flex justify-between text-slate-600 mb-1">
-                            <span>1. ปริมาณกระทู้เว็บบอร์ดกฎหมาย</span>
-                            <span id="weight-webboard-val" class="font-bold text-indigo-600">30%</span>
-                        </div>
-                        <input type="range" id="weight-webboard" min="0" max="50" value="30" oninput="updateWeights()" class="w-full accent-indigo-600">
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-slate-600 mb-1">
-                            <span>2. สถิติรับบริการ สคช. ย้อนหลัง</span>
-                            <span id="weight-service-val" class="font-bold text-indigo-600">30%</span>
-                        </div>
-                        <input type="range" id="weight-service" min="0" max="50" value="30" oninput="updateWeights()" class="w-full accent-indigo-600">
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-slate-600 mb-1">
-                            <span>3. ดัชนีหนี้สิน/ภาวะเศรษฐกิจ</span>
-                            <span id="weight-econ-val" class="font-bold text-indigo-600">20%</span>
-                        </div>
-                        <input type="range" id="weight-econ" min="0" max="50" value="20" oninput="updateWeights()" class="w-full accent-indigo-600">
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-slate-600 mb-1">
-                            <span>4. สัดส่วนกลุ่มเปราะบางในพื้นที่</span>
-                            <span id="weight-vulnerable-val" class="font-bold text-indigo-600">20%</span>
-                        </div>
-                        <input type="range" id="weight-vulnerable" min="0" max="50" value="20" oninput="updateWeights()" class="w-full accent-indigo-600">
+                <div id="national-service-index" class="rounded-lg border border-indigo-100 bg-white p-3 text-xs text-slate-600">
+                    กำลังคำนวณจากสถิติรายจังหวัด...
                 </div>
+                <p class="text-[10px] leading-relaxed text-slate-500">ใช้สัดส่วนคนจนรายจังหวัดเชื่อมกับ สคช. ในจังหวัดนั้น ๆ; เป็น proxy ทางเศรษฐกิจ ไม่ใช่จำนวนคำร้องกฎหมายจริง</p>
             </div>
         </div>
 
@@ -221,16 +194,17 @@
                     <i class="fa-solid fa-location-dot"></i> หมุด สคช.
                 </button>
                 <button onclick="toggleLayer('heatmap')" id="btn-layer-heatmap" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition">
-                    <i class="fa-solid fa-fire"></i> Heatmap Demand
+                    <i class="fa-solid fa-fire"></i> Heatmap
                 </button>
             </div>
 
             <!-- Map Legend -->
             <div class="absolute bottom-6 right-4 z- bg-white/90 backdrop-blur p-3 rounded-xl shadow-lg border border-slate-200 text-xs space-y-1.5">
-                <p class="font-semibold text-slate-800 border-b border-slate-200 pb-1">ระดับความต้องการกฎหมาย (Demand Score)</p>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> สูงมาก (> 75 คะแนน)</div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> ปานกลาง (50 - 75 คะแนน)</div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> ปกติ (< 50 คะแนน)</div>
+                <p class="font-semibold text-slate-800 border-b border-slate-200 pb-1">คะแนน proxy เชิงพื้นที่</p>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> สูง (≥ 75)</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> ปานกลาง (50–74.9)</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> ต่ำ (&lt; 50)</div>
+                <p class="max-w-52 text-[10px] leading-relaxed text-slate-500">คำนวณจากสัดส่วนคนจนรายจังหวัด ไม่ใช่จำนวนคำร้องกฎหมายจริง</p>
             </div>
         </main>
     </div>
@@ -270,9 +244,11 @@
         let attorneyAidAnalytics = null;
         // Public historical aggregate statistics are kept separate from office-level model data.
         let publicLegalAidStats = null;
+        let provincialIndicatorsByProvince = new Map();
         // เปลี่ยนค่านี้เมื่อ ngrok สร้าง URL ใหม่
         const AI_API_BASE_URL = 'https://tipped-roast-tamale.ngrok-free.dev';
         const PUBLIC_LEGAL_AID_STATS_PATH = 'data/legal-aid-channels-v1.json';
+        const PROVINCIAL_INDICATORS_PATH = 'data/provincial-spatial-indicators-v1.json';
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, char => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         })[char]);
@@ -290,11 +266,12 @@
             const status = document.getElementById('public-legal-aid-status');
             const years = document.getElementById('public-legal-aid-years');
             const channels = document.getElementById('public-legal-aid-channels');
+            renderNationalServiceIndex();
             years.replaceChildren();
             channels.replaceChildren();
             if (!publicLegalAidStats) {
                 status.className = 'rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800';
-                status.textContent = 'ยังโหลดสถิติจากแหล่งข้อมูลไม่ได้ แต่การค้นหาสำนักงานและดัชนีต้นแบบยังใช้งานได้ตามปกติ';
+                status.textContent = 'ยังโหลดสถิติจากแหล่งข้อมูลไม่ได้ แต่การค้นหาสำนักงานยังใช้งานได้ตามปกติ';
                 return;
             }
 
@@ -543,33 +520,63 @@
             window.addEventListener('resize', () => setTimeout(() => map.invalidateSize(), 100));
         }
 
-        function getNormalizedWeights() {
-            const raw = {
-                webboard: Number(document.getElementById('weight-webboard').value),
-                service: Number(document.getElementById('weight-service').value),
-                economic: Number(document.getElementById('weight-econ').value),
-                vulnerable: Number(document.getElementById('weight-vulnerable').value)
+        function getNationalServiceIndex() {
+            const annual = publicLegalAidStats?.yearly_totals
+                ?.map(item => ({ fiscal_year_be: Number(item.fiscal_year_be), cases: Number(item.cases) }))
+                .filter(item => Number.isFinite(item.fiscal_year_be) && Number.isFinite(item.cases) && item.cases > 0)
+                .sort((a, b) => a.fiscal_year_be - b.fiscal_year_be) || [];
+            if (!annual.length) return null;
+            const baseline = annual[0];
+            const latest = annual[annual.length - 1];
+            return {
+                baseline,
+                latest,
+                index: Math.round((latest.cases / baseline.cases) * 1000) / 10,
+                change_pct: Math.round(((latest.cases - baseline.cases) / baseline.cases) * 1000) / 10
             };
-            const total = Object.values(raw).reduce((sum, value) => sum + value, 0);
-            if (!total) return { webboard: 0.30, service: 0.30, economic: 0.20, vulnerable: 0.20 };
-            return Object.fromEntries(Object.entries(raw).map(([key, value]) => [key, value / total]));
         }
 
-        function calculateWeightedScore(props) {
-            const components = props.score_components;
-            if (!components) return Number(props.legal_demand_score) || 50;
-            const weights = getNormalizedWeights();
-            const score = Object.entries(weights).reduce(
-                (total, [key, weight]) => total + (Number(components[key]) || 0) * weight,
-                0
-            );
-            return Math.round(Math.max(0, Math.min(100, score)) * 10) / 10;
+        function renderNationalServiceIndex() {
+            const panel = document.getElementById('national-service-index');
+            const serviceMetric = getNationalServiceIndex();
+            if (!provincialIndicatorsByProvince.size) {
+                panel.textContent = 'ยังไม่มีข้อมูลรายจังหวัดเพียงพอสำหรับคำนวณคะแนนเชิงพื้นที่';
+                return;
+            }
+            const sample = provincialIndicatorsByProvince.values().next().value;
+            const serviceText = serviceMetric
+                ? `<p class="mt-1">แนวโน้มรับคำปรึกษาระดับประเทศ: ${serviceMetric.index} (ปีฐาน ${serviceMetric.baseline.fiscal_year_be} = 100)</p>`
+                : '';
+            panel.innerHTML = `<p class="font-semibold text-indigo-900">คะแนน proxy รายจังหวัด: 0–100</p><p class="mt-1">ใช้สัดส่วนคนจนด้านรายจ่าย ปี ${sample.fiscal_year_be} ครอบคลุม ${provincialIndicatorsByProvince.size} จังหวัด</p>${serviceText}`;
         }
 
-        // 2. Render Markers and Heatmap
+        function normalizeProvince(value) {
+            return String(value ?? '').trim().replace(/^จังหวัด/, '').replace(/^จ\./, '').replace(/\s+/g, '');
+        }
+
+        function getOfficeSpatialIndicator(props) {
+            return provincialIndicatorsByProvince.get(normalizeProvince(props?.province)) || null;
+        }
+
+        async function loadProvincialIndicators() {
+            try {
+                const response = await fetch(PROVINCIAL_INDICATORS_PATH);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const payload = await response.json();
+                if (!Array.isArray(payload?.provinces)) throw new Error('Invalid provincial indicator payload');
+                provincialIndicatorsByProvince = new Map(payload.provinces.map(item => [normalizeProvince(item.province), item]));
+                renderNationalServiceIndex();
+                if (allFeatures.length) renderData(allFeatures);
+            } catch (error) {
+                console.warn('Unable to load provincial spatial indicators', error);
+                document.getElementById('national-service-index').textContent = 'ยังโหลดข้อมูลรายจังหวัดไม่ได้ จึงไม่แสดง hotspot หรือ heatmap';
+            }
+        }
+
+        // 2. Render offices with the source-backed indicator for their province.
         function renderData(features) {
             markersLayer.clearLayers();
-            let heatPoints = [];
+            const heatPoints = [];
             let hotspotCount = 0;
 
             features.forEach(feature => {
@@ -580,11 +587,14 @@
                 const lng = coords[0]; // ค่าลองจิจูด (100.x)
                 const lat = coords[1]; // ค่าละติจูด (13.x)
                 const latLng = [lat, lng];
-            
-                const score = calculateWeightedScore(props);
-                if (score > 75) hotspotCount++;
-            
-                const color = score > 75 ? '#f43f5e' : score > 50 ? '#f59e0b' : '#10b981';
+                const indicator = getOfficeSpatialIndicator(props);
+                const score = Number(indicator?.spatial_need_proxy_score);
+                const hasScore = Number.isFinite(score);
+                if (hasScore && score >= 75) hotspotCount += 1;
+                const color = !hasScore ? '#94a3b8' : score >= 75 ? '#f43f5e' : score >= 50 ? '#f59e0b' : '#10b981';
+                const indicatorText = hasScore
+                    ? `คะแนน proxy จังหวัด: <span class="font-bold">${score}/100</span><br>สัดส่วนคนจน: ${Number(indicator.poverty_rate_pct).toFixed(2)}% (ปี ${indicator.fiscal_year_be})<br>`
+                    : 'ไม่มีข้อมูลตัวชี้วัดรายจังหวัดที่จับคู่ได้<br>';
             
                 // 2. สร้าง Marker โดยใช้ latLng ที่ถูกต้อง
                 const marker = L.circleMarker(latLng, {
@@ -599,27 +609,23 @@
                     <div class="space-y-2 text-xs">
                         <h3 class="font-bold text-slate-800 text-sm">${props.title}</h3>
                         <p><b>พื้นที่:</b> ${props.district || '-'}, ${props.province || '-'}<br>
-                        <b>Demand Score:</b> <span class="font-bold text-rose-600">${score}/100</span><br>
-                        <b>ประเด็นหลัก:</b> ${(props.top_issues || []).join(', ')}<br>
+                        ${indicatorText}
                         <b>โทร:</b> ${props.phone || '-'}</p>
                         <button onclick="analyzeOffice('${props.id}')" class="w-full rounded bg-indigo-600 px-2 py-1.5 font-medium text-white hover:bg-indigo-500"><i class="fa-solid fa-brain"></i> วิเคราะห์ สคช. นี้ด้วย AI</button>
                         <button onclick="addToCompare('${props.id}')" class="w-full rounded bg-emerald-600 px-2 py-1.5 font-medium text-white hover:bg-emerald-500">+ เลือกเปรียบเทียบ</button>
                     </div>
                 `);
                 markersLayer.addLayer(marker);
-            
-                // 3. ปรับการเก็บจุด Heatmap ให้ใช้ [lat, lng, score]
-                heatPoints.push([lat, lng, score / 100]);
+                if (hasScore) heatPoints.push([lat, lng, score / 100]);
             });
 
-            // Update Heatmap Layer
             if (heatLayer) map.removeLayer(heatLayer);
-            if (typeof L.heatLayer === 'function') {
-                heatLayer = L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 10 });
-            }
+            heatLayer = typeof L.heatLayer === 'function' && heatPoints.length
+                ? L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 10 })
+                : null;
             if (currentMode === 'heatmap' && heatLayer) heatLayer.addTo(map);
 
-            // Update Summary Stats
+            // Update the verified office-directory count and source-backed hotspot count.
             document.getElementById('stat-total-offices').innerText = features.length;
             document.getElementById('stat-hotspots').innerText = hotspotCount;
         }
@@ -682,19 +688,21 @@
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
         }
 
-        // 4. Layer Toggle
         function toggleLayer(mode) {
             currentMode = mode;
-            if (mode === 'markers') {
+            const markerButton = document.getElementById('btn-layer-markers');
+            const heatmapButton = document.getElementById('btn-layer-heatmap');
+            if (mode === 'heatmap' && heatLayer) {
+                map.removeLayer(markersLayer);
+                heatLayer.addTo(map);
+                heatmapButton.className = 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition';
+                markerButton.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition';
+            } else {
+                currentMode = 'markers';
                 map.addLayer(markersLayer);
                 if (heatLayer) map.removeLayer(heatLayer);
-                document.getElementById('btn-layer-markers').className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition";
-                document.getElementById('btn-layer-heatmap').className = "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition";
-            } else {
-                map.removeLayer(markersLayer);
-                if (heatLayer) map.addLayer(heatLayer);
-                document.getElementById('btn-layer-heatmap').className = "px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition";
-                document.getElementById('btn-layer-markers').className = "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition";
+                markerButton.className = 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-medium transition';
+                heatmapButton.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition';
             }
         }
 
@@ -755,21 +763,17 @@
         async function runComparisonModal() {
             if (selectedOffices.length < 2) return;
             const [o1, o2] = selectedOffices.map(o => o.properties);
-            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-chart-pie text-indigo-600"></i> รายงานผลการเปรียบเทียบความสมดุลภาระงาน สคช.';
+            document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-building text-indigo-600"></i> เปรียบเทียบข้อมูลติดต่อและขอบเขตบริการ สคช.';
 
             const content = `
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                     <h4 class="font-bold text-slate-800 text-sm border-b pb-1">${o1.title}</h4>
                     <p><b>จังหวัด:</b> ${o1.province} (${o1.region})</p>
-                    <p><b>Demand Score:</b> <span class="text-rose-600 font-bold">${o1.legal_demand_score}/100</span></p>
-                    <p><b>ประเด็นร้องเรียนหลัก:</b> ${o1.top_issues.join(', ')}</p>
                     <p><b>เบอร์ติดต่อ:</b> ${o1.phone}</p>
                 </div>
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                     <h4 class="font-bold text-slate-800 text-sm border-b pb-1">${o2.title}</h4>
                     <p><b>จังหวัด:</b> ${o2.province} (${o2.region})</p>
-                    <p><b>Demand Score:</b> <span class="text-rose-600 font-bold">${o2.legal_demand_score}/100</span></p>
-                    <p><b>ประเด็นร้องเรียนหลัก:</b> ${o2.top_issues.join(', ')}</p>
                     <p><b>เบอร์ติดต่อ:</b> ${o2.phone}</p>
                 </div>
             `;
@@ -811,16 +815,7 @@
             document.getElementById('compare-modal').classList.add('hidden');
         }
 
-        // 6. Model Weight Sliders
-        function updateWeights() {
-            document.getElementById('weight-webboard-val').innerText = document.getElementById('weight-webboard').value + '%';
-            document.getElementById('weight-service-val').innerText = document.getElementById('weight-service').value + '%';
-            document.getElementById('weight-econ-val').innerText = document.getElementById('weight-econ').value + '%';
-            document.getElementById('weight-vulnerable-val').innerText = document.getElementById('weight-vulnerable').value + '%';
-            applyFilters();
-        }
-
-        // 7. AI Legal Assistant Search
+        // 6. AI Legal Assistant Search
         async function requestAIAnalysis(query, office = {}) {
             const box = document.getElementById('ai-response-box');
             const text = document.getElementById('ai-response-text');
@@ -866,7 +861,7 @@
             if (!feature) return;
 
             const office = feature.properties;
-            const query = `วิเคราะห์ข้อมูล สคช. ${office.title} เพื่อสนับสนุนการจัดสรรทรัพยากรเชิงพื้นที่ โดยสรุประดับความสำคัญ ประเด็นความต้องการหลัก ความเสี่ยงที่ควรเฝ้าระวัง และข้อเสนอแนะเชิงปฏิบัติสำหรับสำนักงานนี้`;
+            const query = `สรุปข้อมูลติดต่อและขอบเขตบริการของ สคช. ${office.title} พร้อมระบุข้อมูลที่ยังต้องเก็บเพิ่มก่อนตัดสินใจจัดสรรทรัพยากรเชิงพื้นที่`;
             document.getElementById('ai-query').value = `วิเคราะห์ สคช.: ${office.title}`;
             await requestAIAnalysis(query, office);
             document.getElementById('ai-response-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -882,35 +877,38 @@
 
         function buildNationalDashboardSnapshot() {
             const regions = {};
-            const issues = {};
             let scoreTotal = 0;
+            let scoredOffices = 0;
             let hotspots = 0;
             allFeatures.forEach(feature => {
                 const props = feature.properties || {};
-                const score = calculateWeightedScore(props);
                 const region = props.region || 'ไม่ระบุภูมิภาค';
-                if (!regions[region]) regions[region] = { offices: 0, score_total: 0, hotspots: 0 };
+                const score = Number(getOfficeSpatialIndicator(props)?.spatial_need_proxy_score);
+                if (!regions[region]) regions[region] = { offices: 0, score_total: 0, scored_offices: 0, hotspots: 0 };
                 regions[region].offices += 1;
-                regions[region].score_total += score;
-                if (score > 75) { regions[region].hotspots += 1; hotspots += 1; }
-                scoreTotal += score;
-                (props.top_issues || []).forEach(issue => { issues[issue] = (issues[issue] || 0) + 1; });
+                if (Number.isFinite(score)) {
+                    regions[region].score_total += score;
+                    regions[region].scored_offices += 1;
+                    scoreTotal += score;
+                    scoredOffices += 1;
+                    if (score >= 75) { regions[region].hotspots += 1; hotspots += 1; }
+                }
             });
             const region_summary = Object.entries(regions).map(([region, values]) => ({
                 region,
                 offices: values.offices,
-                average_score: Math.round((values.score_total / values.offices) * 10) / 10,
+                average_proxy_score: values.scored_offices ? Math.round((values.score_total / values.scored_offices) * 10) / 10 : null,
                 hotspots: values.hotspots
-            })).sort((a, b) => b.average_score - a.average_score);
+            })).sort((a, b) => (b.average_proxy_score ?? -1) - (a.average_proxy_score ?? -1));
             return {
                 total_offices: allFeatures.length,
-                average_legal_demand_score: Math.round((scoreTotal / Math.max(allFeatures.length, 1)) * 10) / 10,
+                scored_offices: scoredOffices,
+                average_spatial_need_proxy_score: scoredOffices ? Math.round((scoreTotal / scoredOffices) * 10) / 10 : null,
                 hotspots,
                 region_summary,
-                top_issues: Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([issue, count]) => ({ issue, count })),
-                model_weights: getNormalizedWeights(),
+                national_service_volume_index: getNationalServiceIndex(),
                 attorney_aid_actual_data: attorneyAidAnalytics || null,
-                // Separate public national history from user-selected CSV and office-level model scores.
+                // Separate public national history from office-directory locations.
                 public_legal_aid_statistics: publicLegalAidStats || null
             };
         }
@@ -932,21 +930,23 @@
                 if (!response.ok) throw new Error(payload.error || 'Executive summary failed');
                 const result = payload.result || {};
                 const list = (items) => (items || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+                const maxProxyScore = Math.max(...dashboard.region_summary.map(item => item.average_proxy_score || 0), 1);
                 const regionChart = dashboard.region_summary.map(item => `
                     <div class="grid grid-cols-[80px_1fr_72px] items-center gap-2 text-xs">
                         <span class="truncate font-medium">${escapeHtml(item.region)}</span>
-                        <div class="h-5 overflow-hidden rounded bg-slate-100" aria-label="คะแนนเฉลี่ย ${item.average_score} จาก 100">
-                            <div class="flex h-full items-center justify-end bg-indigo-600 pr-1 text-[10px] text-white" style="width:${Math.max(3, item.average_score)}%">${item.average_score}</div>
+                        <div class="h-5 overflow-hidden rounded bg-slate-100" aria-label="คะแนน proxy เฉลี่ย ${item.average_proxy_score ?? 'ไม่ระบุ'}">
+                            <div class="flex h-full items-center justify-end bg-indigo-600 pr-1 text-[10px] text-white" style="width:${Math.max(3, ((item.average_proxy_score || 0) / maxProxyScore) * 100)}%">${item.average_proxy_score ?? '–'}</div>
                         </div>
                         <span class="text-right text-rose-600">Hotspot ${item.hotspots}</span>
                     </div>`).join('');
                 const publicData = dashboard.public_legal_aid_statistics;
                 const latestPublicAnnual = publicData?.yearly_totals?.[publicData.yearly_totals.length - 1];
-                const publicDataCard = publicData ? `<section class="rounded-xl border border-indigo-200 bg-indigo-50 p-4"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> สถิติการรับคำปรึกษาสาธารณะ</h4><p class="mt-1 text-xs text-slate-600">สถิติย้อนหลังระดับประเทศตามช่องทางบริการ ใช้เป็นบริบทภาพรวมเท่านั้น ไม่ใช่ข้อมูลรายสำนักงาน</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุดที่เผยแพร่</b><br>${latestPublicAnnual ? `${escapeHtml(latestPublicAnnual.fiscal_year_be)}: ${formatCases(latestPublicAnnual.cases)} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ช่องทางสูงสุด</b><br>${publicData.top_service_channels?.[0] ? `${escapeHtml(publicData.top_service_channels[0].channel)} (${formatCases(publicData.top_service_channels[0].cases)} เรื่อง)` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ขอบเขตข้อมูล</b><br>ระดับประเทศ</div></div></section>` : '';
+                const nationalIndex = dashboard.national_service_volume_index;
+                const publicDataCard = publicData ? `<section class="rounded-xl border border-indigo-200 bg-indigo-50 p-4"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> สถิติการรับคำปรึกษาสาธารณะ</h4><p class="mt-1 text-xs text-slate-600">สถิติย้อนหลังระดับประเทศตามช่องทางบริการ ใช้เป็นบริบทภาพรวมเท่านั้น ไม่ใช่ข้อมูลรายสำนักงาน</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุดที่เผยแพร่</b><br>${latestPublicAnnual ? `${escapeHtml(latestPublicAnnual.fiscal_year_be)}: ${formatCases(latestPublicAnnual.cases)} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ช่องทางสูงสุด</b><br>${publicData.top_service_channels?.[0] ? `${escapeHtml(publicData.top_service_channels[0].channel)} (${formatCases(publicData.top_service_channels[0].cases)} เรื่อง)` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ดัชนีปริมาณบริการ</b><br>${nationalIndex ? `${nationalIndex.index} (ปีฐาน ${nationalIndex.baseline.fiscal_year_be} = 100)` : 'ไม่มีข้อมูล'}</div></div></section>` : '';
                 const actualData = dashboard.attorney_aid_actual_data;
                 const latestActualAnnual = actualData?.annual_usage?.[actualData.annual_usage.length - 1];
-                const actualDataCard = actualData ? `<section class="rounded-xl border border-sky-200 bg-sky-50 p-4"><h4 class="font-bold text-sky-900"><i class="fa-solid fa-database"></i> ข้อมูลจริงอัยการช่วยได้ (ระดับประเทศ)</h4><p class="mt-1 text-xs text-slate-600">ข้อมูลประกอบจาก CSV ที่ผู้ใช้เลือก ไม่ถูกนำไปเปลี่ยนสีหมุด สคช.</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุด</b><br>${latestActualAnnual ? `${escapeHtml(latestActualAnnual.year)}: ${Number(latestActualAnnual.cases).toLocaleString('th-TH')} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ประเด็นสูงสุด</b><br>${actualData.legal_issue_mix?.top_categories?.[0] ? `${escapeHtml(actualData.legal_issue_mix.top_categories[0].category)}` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ขอบเขตข้อมูล</b><br>ระดับประเทศ</div></div></section>` : '<section class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600"><i class="fa-solid fa-circle-info"></i> ยังไม่ได้เลือกไฟล์ CSV อัยการช่วยได้ รายงานนี้จึงใช้ข้อมูลดัชนีต้นแบบของ สคช. เท่านั้น</section>';
-                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.average_legal_demand_score}/100</b><br><span class="text-xs">คะแนนเฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspots</span></div></div>${publicDataCard}${actualDataCard}<section class="rounded-xl border border-indigo-100 bg-white p-4"><div class="mb-3 flex items-center justify-between"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> คะแนนความต้องการเฉลี่ยรายภูมิภาค</h4><span class="text-xs text-slate-500">ตัวเลขบนแท่ง = คะแนนเฉลี่ย / 100</span></div><div class="space-y-2">${regionChart}</div></section><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
+                const actualDataCard = actualData ? `<section class="rounded-xl border border-sky-200 bg-sky-50 p-4"><h4 class="font-bold text-sky-900"><i class="fa-solid fa-database"></i> ข้อมูลจริงอัยการช่วยได้ (ระดับประเทศ)</h4><p class="mt-1 text-xs text-slate-600">ข้อมูลประกอบจาก CSV ที่ผู้ใช้เลือก ไม่ถูกนำไปจัดอันดับหรือเปลี่ยนสีหมุด สคช.</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุด</b><br>${latestActualAnnual ? `${escapeHtml(latestActualAnnual.year)}: ${Number(latestActualAnnual.cases).toLocaleString('th-TH')} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ประเด็นสูงสุด</b><br>${actualData.legal_issue_mix?.top_categories?.[0] ? `${escapeHtml(actualData.legal_issue_mix.top_categories[0].category)}` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ขอบเขตข้อมูล</b><br>ระดับประเทศ</div></div></section>` : '<section class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600"><i class="fa-solid fa-circle-info"></i> ยังไม่ได้เลือกไฟล์ CSV อัยการช่วยได้ รายงานนี้จึงใช้เฉพาะข้อมูลที่ยืนยันได้จากแหล่งสาธารณะ</section>';
+                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-indigo-50 p-3"><b>${dashboard.average_spatial_need_proxy_score ?? '–'}/100</b><br><span class="text-xs">คะแนน proxy เฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspot proxy</span></div></div>${publicDataCard}${actualDataCard}<section class="rounded-xl border border-indigo-100 bg-white p-4"><div class="mb-3 flex items-center justify-between"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> คะแนน proxy เฉลี่ยรายภูมิภาค</h4><span class="text-xs text-slate-500">อ้างอิงสัดส่วนคนจนรายจังหวัด ไม่ใช่จำนวนคำร้อง</span></div><div class="space-y-2">${regionChart}</div></section><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
             } catch (error) {
                 console.error('Executive report failed:', error);
                 content.innerHTML = '<div class="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">ไม่สามารถเชื่อมต่อ AI เพื่อสร้างรายงานได้ กรุณาตรวจ Flask, ngrok และ URL ใน index.html</div>';
@@ -957,6 +957,7 @@
         window.onload = () => {
             initMap();
             loadPublicLegalAidStats();
+            loadProvincialIndicators();
         };
     </script>
 </body>
