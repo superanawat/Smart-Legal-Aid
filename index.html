@@ -590,7 +590,9 @@
                 const score = Number(indicator?.spatial_need_proxy_score);
                 const hasScore = Number.isFinite(score);
                 if (hasScore && score >= 75) hotspotCount += 1;
-                const color = !hasScore ? '#94a3b8' : score >= 75 ? '#f43f5e' : score >= 50 ? '#f59e0b' : '#10b981';
+                #const color = !hasScore ? '#94a3b8' : score >= 75 ? '#f43f5e' : score >= 50 ? '#f59e0b' : '#10b981';
+                // ตอนดึงสีไปใช้ในฟังก์ชัน renderData ให้เรียกใช้แบบนี้ครับ:
+                const color = getMarkerColor(score, hasScore);
                 const indicatorText = hasScore
                     ? `คะแนน proxy จังหวัด: <span class="font-bold">${score}/100</span><br>สัดส่วนคนจน: ${Number(indicator.poverty_rate_pct).toFixed(2)}% (ปี ${indicator.fiscal_year_be})<br>`
                     : 'ไม่มีข้อมูลตัวชี้วัดรายจังหวัดที่จับคู่ได้<br>';
@@ -958,6 +960,16 @@
             loadPublicLegalAidStats();
             loadProvincialIndicators();
         };
+    </script>
+    <script>
+        function getMarkerColor(score, hasScore) {
+        if (!hasScore) return '#94a3b8'; // เทา
+        if (score >= 80) return '#be123c'; // แดงเข้ม (Rose 700)
+        if (score >= 60) return '#f43f5e'; // แดง (Rose 500)
+        if (score >= 40) return '#f59e0b'; // ส้ม (Amber 500)
+        if (score >= 20) return '#eab308'; // เหลือง (Yellow 500)
+        return '#10b981';                  // เขียว (Emerald 500)
+    }
     </script>
 </body>
 </html>
