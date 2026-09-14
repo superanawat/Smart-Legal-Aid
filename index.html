@@ -1033,7 +1033,7 @@
                     regions[region].scored_offices += 1;
                     scoreTotal += score;
                     scoredOffices += 1;
-                    if (score >= 75) { regions[region].hotspots += 1; hotspots += 1; }
+                    if (score >= highRiskThreshold) { regions[region].hotspots += 1; hotspots += 1; }
                 }
             });
             const region_summary = Object.entries(regions).map(([region, values]) => ({
