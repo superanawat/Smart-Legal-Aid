@@ -661,7 +661,9 @@
                 const indicator = getOfficeSpatialIndicator(props);
                 const score = Number(indicator?.spatial_need_proxy_score);
                 const hasScore = Number.isFinite(score);
-                if (hasScore && score >= 75) hotspotCount += 1;
+                //if (hasScore && score >= 75) hotspotCount += 1;
+                // โค้ดที่แก้ไข (อิงตามค่า highRiskThreshold จาก Slider)
+                if (hasScore && score >= highRiskThreshold) hotspotCount += 1;
                 
                 // ตอนดึงสีไปใช้ในฟังก์ชัน renderData ให้เรียกใช้แบบนี้ครับ:
                 const color = getMarkerColor(score, hasScore);
