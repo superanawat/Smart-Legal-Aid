@@ -795,7 +795,19 @@
                 heatmapButton.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium transition';
             }
         }
-
+        // ฟังก์ชันสำหรับย่อ/ขยาย Map Legend
+        function toggleLegend() {
+            const body = document.getElementById('map-legend-body');
+            const icon = document.getElementById('legend-toggle-icon');
+            
+            if (body.classList.contains('hidden')) {
+                body.classList.remove('hidden');
+                icon.classList.remove('rotate-180');
+            } else {
+                body.classList.add('hidden');
+                icon.classList.add('rotate-180');
+            }
+        }
         // 5. Comparison Logic
         function addToCompare(id) {
             const office = allFeatures.find(f => f.properties.id === id);
