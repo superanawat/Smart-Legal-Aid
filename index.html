@@ -663,7 +663,9 @@
                 const hasScore = Number.isFinite(score);
                 //if (hasScore && score >= 75) hotspotCount += 1;
                 // โค้ดที่แก้ไข (อิงตามค่า highRiskThreshold จาก Slider)
-                if (hasScore && score >= highRiskThreshold) hotspotCount += 1;
+                //if (hasScore && score >= highRiskThreshold) hotspotCount += 1;
+                // นับรวมทั้ง แดงเข้ม (สูงมาก) และ แดง (สูง)
+                if (hasScore && score >= Math.max(20, highRiskThreshold - 20)) hotspotCount += 1;
                 
                 // ตอนดึงสีไปใช้ในฟังก์ชัน renderData ให้เรียกใช้แบบนี้ครับ:
                 const color = getMarkerColor(score, hasScore);
@@ -1033,7 +1035,12 @@
                     regions[region].scored_offices += 1;
                     scoreTotal += score;
                     scoredOffices += 1;
-                    if (score >= highRiskThreshold) { regions[region].hotspots += 1; hotspots += 1; }
+                    
+                    // แก้ไขตรงนี้ให้นับรวมทั้งจุดสีแดงและแดงเข้ม
+                    if (score >= Math.max(20, highRiskThreshold - 20)) { 
+                        regions[region].hotspots += 1; 
+                        hotspots += 1; 
+                    }
                 }
             });
             const region_summary = Object.entries(regions).map(([region, values]) => ({
