@@ -253,7 +253,7 @@
         
         // ฟังก์ชันสำหรับกำหนดสีหมุด 5 ระดับ
         function getMarkerColor(score, hasScore) {
-            if (!hasScore) return '#f5ad5f'; // ส้ม
+            if (!hasScore) return '#94a3b8'; // เทา
             if (score >= 80) return '#8f0426'; // แดงเข้ม (Rose 700)
             if (score >= 60) return '#f04663'; // แดง (Rose 500)
             if (score >= 40) return '#f59e0b'; // เหลืองเข้ม (Amber 500)
@@ -636,7 +636,17 @@
 
             if (heatLayer) map.removeLayer(heatLayer);
             heatLayer = typeof L.heatLayer === 'function' && heatPoints.length
-                ? L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 10 })
+                ? L.heatLayer(heatPoints, { 
+                    radius: 25, 
+                    blur: 15, 
+                    maxZoom: 10,
+                    // กำหนด gradient เป็นสีเดียว (ใช้ rgba เพื่อไล่ความทึบแสงของสีแดง)
+                    gradient: {
+                        0.4: 'rgba(220, 38, 38, 0.3)', // แดงโปร่งแสง
+                        0.7: 'rgba(220, 38, 38, 0.6)', // แดงระดับกลาง
+                        1.0: 'rgba(220, 38, 38, 1.0)'  // แดงเข้ม/ทึบสุด
+                    }
+                })
                 : null;
             if (currentMode === 'heatmap' && heatLayer) heatLayer.addTo(map);
 
