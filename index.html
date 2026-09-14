@@ -36,7 +36,7 @@
         </div>
         <div class="flex shrink-0 items-center space-x-2 sm:space-x-3">
             <button onclick="exportPDFReport()" class="app-report-button text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-file-pdf"></i> รายงานสรุป 🤖
+                <i class="fa-solid fa-file-pdf"></i> รายงานสรุป PDF
             </button>
             <button onclick="resetFilters()" class="app-reset-button text-xs px-3 py-2 rounded-lg transition">
                 <i class="fa-solid fa-rotate-left"></i> รีเซ็ต
@@ -117,6 +117,25 @@
                 </label>
                 <div id="attorney-aid-status" class="hidden rounded-lg border border-sky-100 bg-white p-2.5 text-xs text-slate-700"></div>
                 <button id="clear-attorney-aid" onclick="clearAttorneyAidData()" class="hidden w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">ล้างข้อมูลที่เลือก</button>
+            </div>
+
+            <!-- Public aggregate statistics imported from data.go.th; never used to recolor offices. -->
+            <div class="p-4 border-b border-slate-200 space-y-3 bg-indigo-50/40">
+                <div class="flex items-start justify-between gap-2">
+                    <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-indigo-600"></i> สถิติการรับคำปรึกษาสาธารณะ
+                    </h2>
+                    <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-medium text-indigo-700">ย้อนหลัง · ประเทศ</span>
+                </div>
+                <p class="text-[11px] leading-relaxed text-slate-600">ข้อมูลกรมคุ้มครองสิทธิและเสรีภาพตามช่องทางบริการ ใช้เป็นบริบทภาพรวมและรายงานผู้บริหารเท่านั้น ไม่ใช่จำนวนคำร้องของ สคช. ใด สคช. หนึ่ง</p>
+                <div id="public-legal-aid-status" class="rounded-lg border border-indigo-100 bg-white p-2.5 text-xs text-slate-600">
+                    <i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> กำลังโหลดสถิติ...
+                </div>
+                <div id="public-legal-aid-years" class="grid grid-cols-2 gap-2 text-xs"></div>
+                <div id="public-legal-aid-channels" class="space-y-1.5 text-xs"></div>
+                <a href="https://data.go.th/dataset/gdpublish-dataset-15_081" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] text-indigo-700 hover:underline">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูชุดข้อมูลต้นทางบน data.go.th
+                </a>
             </div>
 
             <!-- AI Legal Knowledge Assistant Box -->
@@ -249,11 +268,99 @@
         let allFeatures = [];
         // Aggregated user-selected data. The raw CSV rows stay in the browser and are not uploaded.
         let attorneyAidAnalytics = null;
+        // Public historical aggregate statistics are kept separate from office-level model data.
+        let publicLegalAidStats = null;
         // เปลี่ยนค่านี้เมื่อ ngrok สร้าง URL ใหม่
         const AI_API_BASE_URL = 'https://tipped-roast-tamale.ngrok-free.dev';
+        const PUBLIC_LEGAL_AID_STATS_PATH = 'data/legal-aid-channels-v1.json';
         const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, char => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         })[char]);
+
+        function formatCases(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? Math.round(number).toLocaleString('th-TH') : 'ไม่ระบุ';
+        }
+
+        function isPublicLegalAidStats(value) {
+            return value && Array.isArray(value.yearly_totals) && Array.isArray(value.top_service_channels);
+        }
+
+        function renderPublicLegalAidStats() {
+            const status = document.getElementById('public-legal-aid-status');
+            const years = document.getElementById('public-legal-aid-years');
+            const channels = document.getElementById('public-legal-aid-channels');
+            years.replaceChildren();
+            channels.replaceChildren();
+            if (!publicLegalAidStats) {
+                status.className = 'rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800';
+                status.textContent = 'ยังโหลดสถิติจากแหล่งข้อมูลไม่ได้ แต่การค้นหาสำนักงานและดัชนีต้นแบบยังใช้งานได้ตามปกติ';
+                return;
+            }
+
+            status.className = 'rounded-lg border border-indigo-100 bg-white p-2.5 text-xs text-slate-700';
+            const source = document.createElement('p');
+            source.className = 'font-medium text-indigo-900';
+            source.textContent = publicLegalAidStats.source_label || 'สถิติการรับคำปรึกษาทางกฎหมายระดับประเทศ';
+            const limitation = document.createElement('p');
+            limitation.className = 'mt-1 text-[10px] leading-relaxed text-slate-500';
+            limitation.textContent = publicLegalAidStats.data_limitations || 'เป็นสถิติรวมระดับประเทศย้อนหลัง ไม่ใช่ข้อมูลรายจังหวัดหรือรายสำนักงาน';
+            status.replaceChildren(source, limitation);
+
+            publicLegalAidStats.yearly_totals.slice(0, 6).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'rounded-lg border border-indigo-100 bg-white p-2';
+                const year = document.createElement('p');
+                year.className = 'text-[10px] text-slate-500';
+                year.textContent = `ปีงบประมาณ ${item.fiscal_year_be || 'ไม่ระบุ'}`;
+                const cases = document.createElement('p');
+                cases.className = 'mt-0.5 font-semibold text-indigo-800';
+                cases.textContent = `${formatCases(item.cases)} เรื่อง`;
+                card.append(year, cases);
+                years.append(card);
+            });
+
+            const heading = document.createElement('p');
+            heading.className = 'pt-1 text-[10px] font-semibold text-slate-600';
+            heading.textContent = 'ช่องทางรับบริการสูงสุด (รวมปีที่เผยแพร่)';
+            channels.append(heading);
+            publicLegalAidStats.top_service_channels.slice(0, 4).forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2 rounded bg-white px-2 py-1.5';
+                const name = document.createElement('span');
+                name.className = 'min-w-0 truncate text-slate-700';
+                name.textContent = `${index + 1}. ${item.channel || 'ไม่ระบุช่องทาง'}`;
+                const cases = document.createElement('span');
+                cases.className = 'shrink-0 font-medium text-indigo-700';
+                cases.textContent = `${formatCases(item.cases)} เรื่อง`;
+                row.append(name, cases);
+                channels.append(row);
+            });
+        }
+
+        async function loadPublicLegalAidStats() {
+            const sources = [
+                // GitHub Pages can use the checked-in public snapshot without an AI gateway.
+                { url: PUBLIC_LEGAL_AID_STATS_PATH, headers: {} },
+                // A running gateway remains a fallback for refreshed server-side data.
+                { url: `${AI_API_BASE_URL}/legal-aid-stats`, headers: { 'ngrok-skip-browser-warning': 'true' } }
+            ];
+            for (const source of sources) {
+                try {
+                    const response = await fetch(source.url, { headers: source.headers });
+                    if (!response.ok) continue;
+                    const payload = await response.json();
+                    const candidate = payload?.data || payload;
+                    if (!isPublicLegalAidStats(candidate)) continue;
+                    publicLegalAidStats = candidate;
+                    renderPublicLegalAidStats();
+                    return;
+                } catch (error) {
+                    console.warn('Unable to load public legal-aid statistics from', source.url, error);
+                }
+            }
+            renderPublicLegalAidStats();
+        }
 
         function compactKey(value) {
             return String(value ?? '').replace(/^\uFEFF/, '').replace(/[^a-z0-9ก-๙]/gi, '').toLowerCase();
@@ -802,7 +909,9 @@
                 region_summary,
                 top_issues: Object.entries(issues).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([issue, count]) => ({ issue, count })),
                 model_weights: getNormalizedWeights(),
-                attorney_aid_actual_data: attorneyAidAnalytics || null
+                attorney_aid_actual_data: attorneyAidAnalytics || null,
+                // Separate public national history from user-selected CSV and office-level model scores.
+                public_legal_aid_statistics: publicLegalAidStats || null
             };
         }
 
@@ -831,10 +940,13 @@
                         </div>
                         <span class="text-right text-rose-600">Hotspot ${item.hotspots}</span>
                     </div>`).join('');
+                const publicData = dashboard.public_legal_aid_statistics;
+                const latestPublicAnnual = publicData?.yearly_totals?.[publicData.yearly_totals.length - 1];
+                const publicDataCard = publicData ? `<section class="rounded-xl border border-indigo-200 bg-indigo-50 p-4"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> สถิติการรับคำปรึกษาสาธารณะ</h4><p class="mt-1 text-xs text-slate-600">สถิติย้อนหลังระดับประเทศตามช่องทางบริการ ใช้เป็นบริบทภาพรวมเท่านั้น ไม่ใช่ข้อมูลรายสำนักงาน</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุดที่เผยแพร่</b><br>${latestPublicAnnual ? `${escapeHtml(latestPublicAnnual.fiscal_year_be)}: ${formatCases(latestPublicAnnual.cases)} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ช่องทางสูงสุด</b><br>${publicData.top_service_channels?.[0] ? `${escapeHtml(publicData.top_service_channels[0].channel)} (${formatCases(publicData.top_service_channels[0].cases)} เรื่อง)` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ขอบเขตข้อมูล</b><br>ระดับประเทศ</div></div></section>` : '';
                 const actualData = dashboard.attorney_aid_actual_data;
                 const latestActualAnnual = actualData?.annual_usage?.[actualData.annual_usage.length - 1];
                 const actualDataCard = actualData ? `<section class="rounded-xl border border-sky-200 bg-sky-50 p-4"><h4 class="font-bold text-sky-900"><i class="fa-solid fa-database"></i> ข้อมูลจริงอัยการช่วยได้ (ระดับประเทศ)</h4><p class="mt-1 text-xs text-slate-600">ข้อมูลประกอบจาก CSV ที่ผู้ใช้เลือก ไม่ถูกนำไปเปลี่ยนสีหมุด สคช.</p><div class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div class="rounded bg-white p-2"><b>ปีล่าสุด</b><br>${latestActualAnnual ? `${escapeHtml(latestActualAnnual.year)}: ${Number(latestActualAnnual.cases).toLocaleString('th-TH')} เรื่อง` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ประเด็นสูงสุด</b><br>${actualData.legal_issue_mix?.top_categories?.[0] ? `${escapeHtml(actualData.legal_issue_mix.top_categories[0].category)}` : 'ไม่มีข้อมูล'}</div><div class="rounded bg-white p-2"><b>ขอบเขตข้อมูล</b><br>ระดับประเทศ</div></div></section>` : '<section class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600"><i class="fa-solid fa-circle-info"></i> ยังไม่ได้เลือกไฟล์ CSV อัยการช่วยได้ รายงานนี้จึงใช้ข้อมูลดัชนีต้นแบบของ สคช. เท่านั้น</section>';
-                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.average_legal_demand_score}/100</b><br><span class="text-xs">คะแนนเฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspots</span></div></div>${actualDataCard}<section class="rounded-xl border border-indigo-100 bg-white p-4"><div class="mb-3 flex items-center justify-between"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> คะแนนความต้องการเฉลี่ยรายภูมิภาค</h4><span class="text-xs text-slate-500">ตัวเลขบนแท่ง = คะแนนเฉลี่ย / 100</span></div><div class="space-y-2">${regionChart}</div></section><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
+                content.innerHTML = `<div class="col-span-2 space-y-4 text-sm"><div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.total_offices}</b><br><span class="text-xs">สคช. ทั้งหมด</span></div><div class="rounded-lg bg-slate-50 p-3"><b>${dashboard.average_legal_demand_score}/100</b><br><span class="text-xs">คะแนนเฉลี่ย</span></div><div class="rounded-lg bg-rose-50 p-3"><b>${dashboard.hotspots}</b><br><span class="text-xs">Hotspots</span></div></div>${publicDataCard}${actualDataCard}<section class="rounded-xl border border-indigo-100 bg-white p-4"><div class="mb-3 flex items-center justify-between"><h4 class="font-bold text-indigo-900"><i class="fa-solid fa-chart-column"></i> คะแนนความต้องการเฉลี่ยรายภูมิภาค</h4><span class="text-xs text-slate-500">ตัวเลขบนแท่ง = คะแนนเฉลี่ย / 100</span></div><div class="space-y-2">${regionChart}</div></section><div><h4 class="font-bold text-indigo-900">บทสรุปผู้บริหาร</h4><p class="mt-1 whitespace-pre-line">${escapeHtml(result.executive_summary || '')}</p></div><div><h4 class="font-bold text-indigo-900">ข้อค้นพบสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.key_findings)}</ul></div><div><h4 class="font-bold text-indigo-900">พื้นที่ที่ควรให้ความสำคัญ</h4><ul class="list-disc space-y-1 pl-5">${list(result.priority_regions)}</ul></div><div><h4 class="font-bold text-indigo-900">ข้อเสนอเชิงบริหาร</h4><ul class="list-disc space-y-1 pl-5">${list(result.recommendations)}</ul></div><div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs"><b>ข้อจำกัดข้อมูล:</b> ${escapeHtml(result.data_limitations || '')}</div></div>`;
             } catch (error) {
                 console.error('Executive report failed:', error);
                 content.innerHTML = '<div class="col-span-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">ไม่สามารถเชื่อมต่อ AI เพื่อสร้างรายงานได้ กรุณาตรวจ Flask, ngrok และ URL ใน index.html</div>';
@@ -842,7 +954,10 @@
         }
 
         // Run Map on Load
-        window.onload = initMap;
+        window.onload = () => {
+            initMap();
+            loadPublicLegalAidStats();
+        };
     </script>
 </body>
 </html>
