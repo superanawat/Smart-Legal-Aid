@@ -1079,10 +1079,11 @@
         }
 
         // Run Map on Load
-        window.onload = () => {
+        window.onload = async () => {
             initMap();
             loadPublicLegalAidStats();
-            loadProvincialIndicators();
+            await loadProvincialIndicators(); // รอให้โหลดข้อมูลจังหวัดเสร็จก่อน แล้ว render ซ้ำชัวร์ๆ
+            if (allFeatures.length) renderData(allFeatures);
         };
     </script>
 </body>
